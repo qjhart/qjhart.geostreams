@@ -42,6 +42,7 @@ use Class::MethodMaker
    scalar => 'height',
    scalar => 'width',
    scalar => [{-type=>'GeoStr::Box'},qw/ box /],
+#   scalar => 'proj',
    scalar => [{-type=>'HASH'}, qw/ proj /],
    new => [ qw/ _new / ],
   ];

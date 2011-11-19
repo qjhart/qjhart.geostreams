@@ -1,4 +1,4 @@
-package GeoStr::Box;
+package GeoStr::GeoBox;
 use Geo::Proj4;
 use POSIX qw(floor ceil);
 
@@ -97,17 +97,23 @@ sub project {
   my $np= new Geo::Proj4(%$proj);
 
   my $fixup = sub {
-	my ($x,$y)=$np->forward($op->inverse(@_));
-	my $fixed=0;
-	$W=$x and $fixed++ if $x<$W; 
-	$E=$x and $fixed++ if $x>$E; 
-	$S=$y and $fixed++ if $y<$S; 
-	$N=$y and $fixed++ if $y>$N;
-	$fixed;
+    my($lat,$lon)=$op->inverse(@_);
+    if (defined($lon) and defined($lat)) {
+      my ($x,$y)=$np->forward($lat,$lon);
+      my $fixed=0;
+      $W=$x and $fixed++ if $x<$W; 
+      $E=$x and $fixed++ if $x>$E; 
+      $S=$y and $fixed++ if $y<$S; 
+      $N=$y and $fixed++ if $y>$N;
+    } else {
+      $fixed++;
+    }
+    $fixed;
   };
   # DO corners
-  ($W,$S)=$np->forward($op->inverse($w,$s));
+  ($W,$S)=$np->forward($op->inverse(($w+$e)/2,($s+$n)/2));
   ($E,$N)=($W,$S);
+  &$fixup($w,$s);
   &$fixup($w,$n);
   &$fixup($e,$s);
   &$fixup($e,$n);
@@ -115,7 +121,7 @@ sub project {
   # I think this could really fail on some weird shapes.
   {
     # by default be very fast with resolution;
-    my $max_iterations = eval { int(log($b->minimum_resolution)/log(2))+1 };
+    my $max_iterations = int(log($b->width)/log(2))+1;
     if ($@) { $max_iterations = 2; }
     our $fixside = sub {
       my $side=shift;
@@ -140,10 +146,14 @@ sub project {
       }
     };
   }
-  &$fixside(0,0,$w,$s,$e,$n);
-  &$fixside(1,0,$w,$s,$e,$n);
-  &$fixside(2,0,$w,$s,$e,$n);
-  &$fixside(3,0,$w,$s,$e,$n);
+  # Do centerlines
+  &$fixside(0,0,($w+$e)/2,$s,$e,$n);
+  &$fixside(1,0,$w,($s+$n)/2,$e,$n);
+  # Now outside
+#  &$fixside(0,0,$w,$s,$e,$n);
+#  &$fixside(1,0,$w,$s,$e,$n);
+#  &$fixside(2,0,$w,$s,$e,$n);
+#  &$fixside(3,0,$w,$s,$e,$n);
 
   [$W,$S,$E,$N];
 }

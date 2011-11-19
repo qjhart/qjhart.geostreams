@@ -16,6 +16,7 @@ GeoStr::Q->table('query');
 GeoStr::Q->columns(All => qw/queryid user w s e n width height channel/);
 GeoStr::Q->has_a(user => 'GeoStr::User');
 
+package main;
 
 use POSIX (qw/ceil floor/);
 use GeoStr;
@@ -126,13 +127,23 @@ foreach my $cnt (0..$cnt[$opt{user}]) {
     my @reg=`g.region region=$qname\@queries -g`;
     grep {chomp; ($k,$v)=split('='); $q{$k}=$v;}  @reg;
 
-    my $box = new GeoStr::Box [$q{w},$q{s},$q{e},$q{n}];
+    my $gbox = new GeoStr::GeoBox(box=>[$q{w},$q{s},$q{e},$q{n}],
+				  proj=>{+proj=>'goes',+goes=>10,+row_col=>-1},
+				  width=>int(($q{e}-$q{w})/$q{ewres}),
+				  height=>int(($q{n}-$q{s})/$q{nsres}),
+				  );
+
+#    my $box = new GeoStr::Box $gbox->project({+proj=>'longlat',+ellps=>'sphere',+pm=>-135});    
+    my $box = new GeoStr::Box $gbox->project({+proj=>'longlat',+ellps=>'sphere'});
+
     my $query = new GeoStr::Query
 	(
 #     layer=>'ch'.$q->channel,
 	 layer=>'ch1',
 	 id=>$qname,
 	 box=>$box,
+#	 proj=>{+proj=>'longlat',+ellps=>'sphere',+pm=>-135},
+	 proj=>{+proj=>'longlat',+ellps=>'sphere'},
 	 width=>int(($q{e}-$q{w})/$q{ewres}),
 	 height=>int(($q{n}-$q{s})/$q{nsres}),
 	 );

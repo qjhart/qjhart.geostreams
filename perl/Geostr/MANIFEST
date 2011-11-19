@@ -43,6 +43,7 @@ lib/GeoStr/Node/Layer.pm
 lib/GeoStr/Node/Average.pm
 lib/GeoStr/Node/Send.pm
 lib/GeoStr/Node/Interpolate.pm
+lib/GeoStr/Node/Project.pm
 lib/GeoStr/Node/Halve.pm
 lib/GeoStr/Node/MapCalc.pm
 lib/GeoStr/Box.pm

@@ -274,6 +274,55 @@ endef
 #$(eval $(call interpolate,ch5_1,ch5_2))
 
 
+###################################################################
+# Proj-Region Routine
+# $(1) - Region Name
+# $(2) - Region command
+# $(3) - query
+# $(4) - location
+###################################################################
+define proj-region
+
+#$(warning region save=$(1),$(2))
+
+clean::
+	g.mapset location=$(4) mapset=$(3); \
+	g.remove region=$(1) > /dev/null; \
+	g.mapset location=$(LOCATION_NAME) mapset=$(MAPSET); \
+
+$(GISDBASE)/$(4)/$(3)/windows/$(1): $(GISDBASE)/$(4)/$(3)/WIND
+	g.mapset location=$(4) mapset=$(3); \
+	g.region save=$(1) $(2)
+	g.mapset location=$(LOCATION_NAME) mapset=$(MAPSET); \
+
+endef
+
+####################################################################
+# Product Projection 
+# $(1) - output ( Should be the MAPSET name)
+# $(2) - input
+# $(3) - query
+# $(4) - projection location
+####################################################################
+
+define proj
+
+clean::
+	g.remove rast=$(1) > /dev/null
+
+$(GISDBASE)/$(4)/$(3)/WIND:
+	[[ -d mkdir $(dir $@) ]] || mkdir $(dir $@)
+	cp $(dir $@)/../PERMANENT/DEFAULT_WIND $@
+
+$(GISDBASE)/$(4)/$(3)/cellhd/$(1): $(rast)/$(2) $(GISDBASE)/$(4)/$(3)/WIND
+	g.mapset location=$(4) mapset=$(3); \
+	g.region region=$(1)
+	r.proj input=$(2) output=$(1) location=GOES-10 mapset=$(MAPSET); \
+	g.mapset location=$(LOCATION_NAME) mapset=$(MAPSET); \
+
+endef
+
+
 ####################################################################
 # Channel halving, Create all smaller versions of input files.
 # $(1) - output

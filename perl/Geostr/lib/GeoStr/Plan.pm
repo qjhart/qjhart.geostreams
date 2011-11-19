@@ -4,10 +4,12 @@ use warnings;
 use Graph::Directed;
 use Graph::Traversal::DFS;
 use GeoStr;
+use GeoStr::GeoBox;
 use GeoStr::Node::Layer;
 use GeoStr::Node::Send;
 use GeoStr::Node::Average;
 use GeoStr::Node::Interpolate;
+use GeoStr::Node::Project;
 use GeoStr::Node::Halve;
 use GeoStr::Node::MapCalc;
 use POSIX (qw/ceil floor/);
@@ -43,13 +45,43 @@ sub add_query {
   my $layer = $plan->layer($query->layer) || 
     die "Bad Source: ".$query->layer;
 
-  # Used in All Cases
-  my $interpolate = new GeoStr::Node::Interpolate 
-    (
-     query=>$query,
-     name=>$plan->name.'_'.$query->id.'_'.$layer->name.'_int',
-    );
+  my $interpolate;
 
+  if ($query->proj) {
+    $interpolate = new GeoStr::Node::Project 
+      (
+       query=>$query,
+       name=>$plan->name.'_'.$query->id,
+      );
+    # Now fix the bounding box to Be in GOES space
+    my $new_box= new GeoStr::GeoBox(box=>$query->box,
+				    proj=>$query->proj,
+				   height=>$query->height,
+				   width=>$query->width);
+
+    my @new_box= @{$new_box->project({+proj=>'goes',+goes=>10,+row_col=>'-1'})};
+    my @res=@{ $query->resolution };
+    $new_box[0]-=2*$res[0];
+    $new_box[1]-=2*$res[1];
+    $new_box[2]+=2*$res[0];
+    $new_box[3]+=2*$res[1];
+
+    $query->box(\@new_box);
+
+    # These are used to pick the resolution.  This currently just
+    # picks whatever rsolution corresponds to a similar size in the LL
+    # image.
+
+    $query->width($query->width+4);
+    $query->height($query->height+4);
+
+  } else {
+    $interpolate = new GeoStr::Node::Interpolate 
+      (
+       query=>$query,
+       name=>$plan->name.'_'.$query->id.'_'.$layer->name.'_int',
+      );
+  }
 
   if ($layer->eq) { 		# Equation
     my $eq = $plan->mapcalc($query,$layer);
