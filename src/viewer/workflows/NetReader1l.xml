@@ -1,0 +1,53 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="NetReader1l" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{330.0, 60.0}">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={366, 86, 651, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[435, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{170.2373737373737, 96.3484848484848}">
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="12">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="A client workflow that reads data from a net-enabled workflow.">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-30.0, 0.0]">
+        </property>
+    </property>
+    <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="600 0 250 250 ">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="20">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[150.0, 80.0]">
+        </property>
+    </entity>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="THR">
+        </property>
+        <property name="GeoStreams server" class="ptolemy.data.expr.StringParameter" value="localhost:35814">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-5.0, 80.0]">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="ImageStreamViewer.input" relation="relation"/>
+    <link port="ImageStreamReader.output" relation="relation"/>
+</entity>

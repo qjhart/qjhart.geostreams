@@ -1,0 +1,39 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="S-sine1" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[300.0, 35.0]">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={83, 250, 801, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[585, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.6160220994475">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{172.0, 99.2905982905983}">
+    </property>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 500 500">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="60">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{270, 115}">
+        </property>
+    </entity>
+    <entity name="Sine" class="geostreams.ptolemy.actor.StreamSineActor">
+        <doc>Sine</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{95, 115}">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="StreamViewer.input" relation="relation"/>
+    <link port="Sine.output" relation="relation"/>
+</entity>

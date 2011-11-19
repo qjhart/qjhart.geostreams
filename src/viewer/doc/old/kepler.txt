@@ -1,0 +1,80 @@
+Geostreams Kepler setup
+Carlos A. Rueda-Velasquez
+$Id: kepler.txt,v 1.1 2006/11/28 21:15:00 crueda Exp $
+
+****************************************************
+*****NOTE:  OLD STUFF (v 1.1 2005/05/03)
+*****I'm not using Kepler libraries for this project
+****************************************************
+
+In this document I explain how I'm setting up Kepler to include the
+Geostreams actors. In what follows $KEPLER is the location where
+Kepler has been installed in the system. I have tested the instructions
+in this doc against kepler-1.0.0alpha6. (ptolemy has not been used
+directly.)
+
+- Read Geostreams' build.properties for some general information, and 
+  then install the Geostreams jar files in $KEPLER/lib/jar/ by running: 
+    ant -Dkepler.jars=$KEPLER/build/kepler.jar \
+        -Dkepler.jar.dir=$KEPLER/lib/jar/ install-actors
+  
+- Edit $KEPLER/configs/ptolemy/configs/kepler/ontology.owl to
+  add something like:
+      <!-- WorkflowComponent
+             Actor
+               DomainSpecificActor
+                 GeostreamsActors
+        -->
+      <owl:Class rdf:ID="GeostreamsActors">
+        <rdfs:label>GeostreamsActors</rdfs:label>
+        <rdfs:subClassOf rdf:resource="#DomainSpecificActor"/>
+      </owl:Class>
+
+- Edit $KEPLER/configs/ptolemy/configs/kepler/basicKeplerActorLibrary.xml
+  to add an entry for each Geostreams actor. For example:
+
+    <entity name="ImageStreamReader" class="edu.ucdavis.geostreams.kepler.ImageStreamReaderActor">
+      <property name="entityId" class="org.ecoinformatics.seek.util.NamedObjId"
+                value="urn:lsid:ecoinformatics.org:kepler.XXX.1"/>
+    </entity>
+
+  Instead of XXX, use a unique id.
+
+- Edit $KEPLER/configs/ptolemy/configs/kepler/annotations.owl to add 
+  an entry for each Geostreams actor. For example:
+    <asc:Annotation rdf:ID="AYYY.1">
+    <asc:lsid>urn:lsid:ecoinformatics.org:SMS:AYYY:1</asc:lsid>
+    <asc:annotates>
+      <asc:ItemTag>
+        <rdf:type rdf:resource="&ont;GeostreamsActors"/>
+        <asc:taggedItem>
+          <asc:Actor>
+            <asc:lsid>urn:lsid:ecoinformatics.org:kepler.XXX.1</asc:lsid>
+         </asc:Actor>
+        </asc:taggedItem>
+      </asc:ItemTag>
+    </asc:annotates>
+    </asc:Annotation>
+
+  Instead of YYY, use a unique id, and use the id defined in
+  basicKeplerActorLibrary.xml instead of XXX.
+
+
+- Edit $KEPLER/build.xml to change the "jar-configs" target: 
+    <!-- <target name="jar-configs" depends="compile-dev"> -->
+    <target name="jar-configs" depends="setcommonclasspath,prepare">
+     ... no changes in body
+    </target>
+
+- Regenerate kepler-configs.jar:
+    cd $KEPLER
+    rm -r build/configs/
+    ant jar-configs
+
+- Add Geostreams jar files to CLASSPATH in kepler.sh:
+   CLASSPATH=lib/jar/geostreams.jar:lib/jar/geostreams-kepler.jar:$CLASSPATH
+  
+- That's it. Now run kepler:
+    sh ./kepler.sh
+  The Geostreams actors should now be available in kepler.
+  

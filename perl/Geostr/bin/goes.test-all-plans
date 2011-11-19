@@ -1,0 +1,110 @@
+#! /usr/bin/make -f
+
+# How many, and what tests to run.
+user:=1 2 3 4
+
+# Are we currently Running Grass?
+ifndef GISRC
+  $(error Must be running in GRASS)
+endif
+
+GISDBASE:=$(shell g.gisenv GISDBASE)
+LOCATION_NAME:=$(shell g.gisenv LOCATION_NAME)
+MAPSET:=$(shell g.gisenv MAPSET)
+
+# Shortcut Directories
+loc:=$(GISDBASE)/$(LOCATION_NAME)
+rast:=$(loc)/$(MAPSET)/cellhd
+# etc is our special location for non-grass datafiles
+etc:=$(loc)/$(MAPSET)/etc
+
+# This is the shell to use when running programs.
+SHELL:=/bin/bash
+
+test:=/home/quinn/projects/geostreams/perl/Geostr
+
+info:
+	@echo GISRC: $(GISRC)
+	@g.gisenv;
+
+
+############################################################
+# $(1) = averaging type
+# $(2) = test
+############################################################
+
+define plan
+
+.PHONY: ps time-each $(1)_$(2).time $(1)_$(2).expanded
+
+$(1)_$(2).time: $(etc)/$(1)_$(2).time
+$(1)_$(2).expanded: $(etc)/$(1)_$(2).expanded
+$(1)_$(2).mask.time: $(etc)/$(1)_$(2).mask.time
+$(1)_$(2).ps: $(etc)/$(1)_$(2).ps
+
+time-each:: $(etc)/$(1)_$(2).time
+ps:: $(etc)/$(1)_$(2).ps
+
+clean::
+	$(test)/bin/goes.exe-plan averaging=$(1) plan=$(1) user=$(2) clean
+
+$(etc)/$(1)_$(2).ps: $(etc)/$(1)_$(2).dot
+	circo -Tps -o $$@ $$<
+
+$(etc)/$(1)_$(2).dot: $(etc)/$(1)_$(2).expanded
+	perl -MGraphViz::Makefile \
+	-e '$$$$gm=GraphViz::Makefile->new(GraphViz->new(width => 8.5, height => 11),"$$<");' \
+	-e '$$$$gm->generate("queries");' \
+	-e 'print $$$$gm->GraphViz->as_canon' | \
+	perl -p -e 's|$(rast)||g' > $$@
+
+$(etc)/$(1)_$(2).expanded: $(etc)/$(1)_$(2).mk
+	make --no-builtin-rules --no-builtin-variables -f $(test)/bin/goes.exe-plan averaging=$(1) plan=$(1) user=$(2) -p > $$@
+
+$(etc)/$(1)_$(2).time: $(etc)/$(1)_$(2).mk
+	/usr/bin/time --append --output=$$@ --format="$(MAPSET),$(1),$(2),0,%e" $(test)/bin/goes.exe-plan averaging=$(1) plan=$(1) user=$(2) queries
+
+$(etc)/$(1)_$(2).mask.time: $(etc)/$(1)_$(2).mk
+	/usr/bin/time --append --output=$$@ --format="$(MAPSET),$(1),$(2),1,%e" $(test)/bin/goes.exe-plan averaging=$(1) plan=$(1) user=$(2) use_mask=1 queries
+
+$(etc)/$(1)_$(2).mk:
+	$(test)/bin/goes.exe-plan averaging=$(1) plan=$(1) user=$(2) info
+
+clean-foo::
+	rm -f $(etc)/$(1)_$(2).ps $(etc)/$(1)_$(2).time $(etc)/$(1)_$(2).mk $(etc)/$(1)_$(2).mk.expand $(etc)/$(1)_$(2).txt
+
+endef
+
+$(foreach p,each share,$(foreach n,$(user),$(eval $(call plan,$p,$n))))
+
+time:: time-each du-ck.all du-ck.queries time.gp.dat time.gp
+
+du-ck.all:
+	for t in each share; do for n in $(user); do s=`du -ck ../fcell/$${t}_$${n}_* ../cell/$${t}_$${n}_* | grep total | cut -d\t -f 1`; echo "$$t $$n $$s";done; done > $@
+
+du-ck.queries:
+	for t in each share; do for n in $(user); do s=`du -ck ../fcell/$${t}_$${n}_??_[0-9][0-9][0-9] | grep total | cut -d\t -f 1`; echo "$$t $$n $$s";done; done 2>/dev/null > $@
+
+time.gp.dat: du-ck.queries
+	sz=`head -4 du-ck.queries | cut -f3 -d' ' `; \
+	echo -e "\n" |  cat each*.time - share*.time |\
+	perl -n -a -F',' -e "BEGIN{@count=(0,5,20,50,100);@size=(qw/0 $$sz/);}" -e 'chomp $$F[4]; if ($$F[4]) {print join(",",@F[0..4],$$count[$$F[2]],$$F[4]/($$size[$$F[2]]/1000))."\n";} else { print @F;}' > $@
+
+time.gp:
+	echo set datafile separator "','" >>$@
+	echo unset logscale x >>$@
+	echo unset logscale y >>$@
+	echo set xlabel '"{Number of Queries}"' >>$@
+	echo set ylabel '"{Processing Time / MB [$$s$$] }"' >>$@
+	echo #set key top left reverse Left spacing 1 >>$@
+	echo set key top right right spacing 1 >>$@
+	echo set style line 1 lt 1 lw 2 pt 6 ps 2 >>$@
+	echo set style line 2 lt 2 lw 2 pt 2 ps 2 >>$@
+	echo set style line 3 lt 3 lw 2 pt 1 ps 2 >>$@
+	echo set style line 4 lt 4 lw 2 pt 6 ps 2 >>$@
+	echo set style line 5 lt 1 lw 2 pt 3 ps 2 >>$@
+	echo set style line 6 lt 2 lw 2 pt 4 ps 2 >>$@
+	echo set style line 7 lt 3 lw 2 pt 3 ps 2 >>$@
+	echo set style line 8 lt 4 lw 2 pt 3 ps 2 >>$@
+	echo set style data linespoints >>$@
+	echo plot "'time.gp.dat'" using 6:7 index 0 title '"each"' ls 3, "'time.gp.dat'"   using 6:7 index 1 title '"share"' ls 7 >>$@

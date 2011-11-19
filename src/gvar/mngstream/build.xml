@@ -1,0 +1,56 @@
+<!--
+	Build for mngstream module
+	Carlos A. Rueda
+	$Id: build.xml,v 1.1 2004/07/24 09:39:06 crueda Exp $
+-->
+<project name="mngstream" default="mngstream.jar" >
+	<!-- Version -->
+	<property name="VERSION" value="1.0"/>
+
+	<!-- Base dir for generated files -->
+	<property name="generated" value="."/>
+
+	<!-- Directory to put compiled classes -->
+	<property name="build" value="${generated}/BUILD"/>
+
+	<!-- Directory to put distribution -->
+	<property name="dist" value="${generated}/DIST"/>
+
+	<property name="src.dir" value="geostreams"/>
+	<property name="dest.dir" value="${build}/classes"/>
+
+	<target name="init">
+		<tstamp/>
+		<echo message="mngstream version = ${VERSION}"/>
+		<mkdir dir="${dest.dir}"/>
+		<mkdir dir="${dist}"/>
+	</target>
+
+	<target name="mngstream.jar" depends="compile">
+		<jar jarfile="${dist}/mngstream.jar"
+			basedir="${build}/classes"
+			includes="geostreams/**">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Main-class" value="geostreams.mngstream.MngStreamClient"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src.dir}" destdir="${dest.dir}"
+			debug="on"
+			deprecation="on"
+			source="1.4"
+		/>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}/classes/geostreams"/>
+	</target>
+
+	<target name="clean-dist" depends="clean">
+		<delete file="${dist}/mngstream.jar"/>
+	</target>
+
+</project>

@@ -1,0 +1,17 @@
+GEOSTREAMS
+//
+// The contents has the following format:
+//   GEOSTREAMS
+//   x | y | width | height                // reference system
+//   description1 | URL1 | saved1          // stream 1
+//   description2 | URL2 | saved2          // stream 2
+//   ...
+//
+//3973 | 2520 | 30676 | 15769
+
+0 | 0 | 30676 | 15769
+Channel 1, 0.52-0.75microns - cloud cover       | http://geostream.cs.ucdavis.edu:9060/geostream?channels=0&format=1 | http://geostream.cs.ucdavis.edu/~carueda/applet/saved_0.jpg
+Channel 2,   3.8-4.0microns - night cloud cover | http://geostream.cs.ucdavis.edu:9060/geostream?channels=1&format=1 | http://geostream.cs.ucdavis.edu/~carueda/applet/saved_1.jpg
+Channel 3,   6.4-7.0microns - water vapor       | http://geostream.cs.ucdavis.edu:9060/geostream?channels=2&format=1 | http://geostream.cs.ucdavis.edu/~carueda/applet/saved_2.jpg
+Channel 4, 10.2-11.2microns - sea surface temp. | http://geostream.cs.ucdavis.edu:9060/geostream?channels=3&format=1 | http://geostream.cs.ucdavis.edu/~carueda/applet/saved_3.jpg
+Channel 5, 11.5-12.5microns - sea surface temp. | http://geostream.cs.ucdavis.edu:9060/geostream?channels=4&format=1 | http://geostream.cs.ucdavis.edu/~carueda/applet/saved_4.jpg

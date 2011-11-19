@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/carueda/software/jts-1.8.0/lib/jts-1.8.jar" sourcepath="/home/carueda/software/jts-1.8.0/src"/>
+	<classpathentry kind="lib" path="/home/carueda/workspace/CIMIS/cimis-download.jar"/>
+	<classpathentry kind="lib" path="/home/carueda/workspace/kepler/lib/jar/commons-logging.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/vit"/>
+	<classpathentry kind="lib" path="/home/carueda/workspace/kepler/build/kepler.jar"/>
+	<classpathentry kind="output" path="_generated/BUILD/classes"/>
+</classpath>

@@ -1,0 +1,62 @@
+Web-enabling Ptolemy models
+Carlos A. Rueda-Velasquez
+$Id: webmodel.txt,v 1.1 2006/11/28 21:15:00 crueda Exp $
+
+This document describes a mechanism to enable a Ptolemy II model 
+for Web access.
+
+Status: Alpha
+
+Use cases
+---------
+The following use cases give an idea of the overall functionality.
+
+UC1. Ptolemy user web-enables a model:
+  1.1 Using vergil, user inserts a WebEnabler actor into the model
+  
+UC2. Client asks for available streams in a remote web-enabled model
+  2.1 Client connects using server name and port
+  2.2 Client submits the corresponding request (currently, "streams")
+  2.3 Client receives a message listing the available streams
+
+UC3. Client requests a stream from a remote web-enabled model
+  3.1 UC2
+  3.2 Client requests the desired stream (currently, "get:...")
+  3.3 Client receives stream data
+
+
+Current design
+--------------
+
+Main package: edu.ucdavis.geostreams.actor.we
+
+
+NetInterfaceActor (NI)
+	No inputs/outputs. The user just needs to insert a NI into a workflow to 
+	enable its output ports for remote access. The NI starts a 
+	NetInterfaceServer to dispatch remote client requests.
+	
+NetInterfaceServer (WES)
+	Instantiated by NetInterfaceActor.
+	Opens a ServerSocket on port 35813. For a new client accepted, it creates
+	a DispatchClient object, which dispatches the main commands. When the
+	command from the client is a "get:", then the DispatchClient object
+	delegates the rest of the connection to the NI, by calling
+	NI.addRemoteClient(remoteClient, streamName). This method creates and
+	inserts into the workflow (if not already created and inserted) a 
+	StreamServerActor (SS) object, and calls ss.addRemoteClient(remoteClient)
+	
+StreamServerActor (SS)
+	Dispatches a particular stream from one of the output ports in the
+	workflow. At a fire(), this actor sends the received token to each 
+	RemoteClient that has been added via addRemoteClient(remoteClient)
+	(NI does this).
+	
+RemoteClient
+	Keeps info about a connected client (socket, in/out streams).
+	
+
+Client
+	A simple program to test a web-enabled model. By default, it
+	connects to localhost at port 35813.
+	

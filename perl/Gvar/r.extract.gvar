@@ -1,0 +1,390 @@
+#! /usr/bin/perl -w
+#use lib '/home/users/qjhart/perl/Gvar/blib/arch /home/users/qjhart/perl/Gvar/blib/lib';
+use strict 'vars';
+use sigtrap 'handler', \&close, 'normal-signals';
+
+# I don't seem to be removing the proper file from the list :(
+# Need to do that better.
+
+use Pod::Usage;
+use Gvar;
+use Gvar::FrameIH;
+use GvarX::Scene;
+use Getopt::Long;
+use File::Path;
+use File::Basename;
+use IO::Wrap;
+use PDL;
+use PDL::IO::FastRaw;
+use IO::File;
+use Date::Manip;
+
+use Grass;
+my %grassrc=
+    (
+     gisdbase=>'/goesbox/data/gdb',
+     location_name=>'California',
+     mapset=>'PERMANENT',
+     );
+
+use POSIX qw(strftime);
+
+use DBI;
+
+
+
+# PI CONVERSIONS
+use constant pi => 4*atan2(1,1);
+sub deg2rad { map(pi * $_ / 180,@_); }
+sub rad2deg { map(180 * $_ / pi,@_); }
+
+my $size;
+# We need to move this too a grass db.
+my $ll='/goesbox/data/gdb/California/2km/etc/ll';
+
+#Daemon Parameter
+our $facility ='local2';
+our $daemon=0;
+our $sleep=600;
+our $clobber=0;
+
+# GOES receiver info
+our $match='^.*\.VIK';
+our $match_start='00-0[78]00$';
+
+our $dsn='dbi:Pg:dbname=goes.cstars.ucdavis.edu';
+our $host='/goesbox/data/images/realtime';
+our $Instr=1;
+
+our $debug=undef;
+
+GetOptions(
+	   'll=s'=>\$ll,
+	   'daemon!'=>\$daemon,
+	   'syslog=s'=>\$facility,
+           'debug!'=>\$debug,
+	   'sleep=s'=>\$sleep,
+	   "match=s"=>\$match,
+	   "match-start=s"=>\$match_start,
+	   "dsn=s"=>\$dsn,
+	   "host=s"=>\$host,
+	   "clobber!"=>\$clobber,
+	   'gisrc'=>\$grassrc{gisrc},
+	   'gisdbase'=>\$grassrc{gisdbase},
+	   );
+
+if($debug) {			# Set for Debugging
+  $facility='debug';
+  $daemon=0;
+  $sleep=0;
+}
+
+our $Grass=new Grass (%grassrc);
+
+if ($facility eq 'debug') {
+  no strict "refs";
+  *openlog=sub {};
+  *syslog=sub {
+    my $level=shift;
+    print STDERR "$level:";
+    printf STDERR @_;
+    print STDERR "\n";
+  };
+  *closelog = sub {};
+  use strict "refs";
+} else {
+  use Sys::Syslog;
+}
+
+openlog 'gvard','nowait',$facility;
+syslog 'notice', "Gvar download, and extraction service";
+
+our $dbh = DBI->connect($dsn, "", "") 
+  or pod2usage("Can't connect to database $dsn");
+
+our $rv;
+
+pod2usage("No (-ll) longitude latitude file") unless $ll;
+my $lonlat=readfraw($ll);
+
+DAEMON: {
+  my @gvar;
+  if ($host =~ /^http:/) {
+      # index.html reader.
+      use LWP::Simple;
+      use HTML::LinkExtor;
+
+      my $index = new HTML::LinkExtor;
+
+    # Get a list of files on the server
+    syslog('debug',"Index-$host");
+    if (my $html=get($host)) {
+      $index->parse($html);
+      @gvar = sort grep { $_=$$_[2] if ( $$_[0] eq 'a' 
+					 and $$_[1]='href' 
+					 and $$_[2] =~ /$match/) 
+			} $index->links;
+      pop @gvar;		#skip most recent file
+    } else {
+      syslog('err',"Index-Can't fetch $host");
+    }
+  } else {
+    opendir DIR,$host;
+    my @files=readdir DIR;
+    @gvar = sort grep(/$match/, @files);
+    pop @gvar;
+  }
+
+ FILE: for my $file (@gvar) {
+    {
+        $file="$host/$file";
+	my ($filename) = $dbh->selectrow_array(sprintf("select filename from gvar where filename=%s",$dbh->quote($file)));
+	if ($filename) {
+	    if ($clobber) {
+		$dbh->do(sprintf("delete from gvar where filename=%s",$dbh->quote($file)));
+		syslog 'debug',"$file-clobber";
+	    } else {
+		syslog 'debug',"$file-Previously Processed,noclobber";
+		next FILE;
+	    }
+	} else {
+	    syslog 'info',"$file-Processing";
+	}
+    }
+  FRAME: {
+	# set region to Longitude file	
+	my $frame = new Gvar::FrameIH(input => "$file");
+	my $first_doc = $frame->first_doc;
+
+	# Check Start time...
+	my $start_time=$first_doc->{TCHED};
+	my $date_id=UnixDate($start_time->{date},"%Y-%m-%d");
+        my $time_id=UnixDate($start_time->{date},"%H%M");
+	my $datetime_id=UnixDate($start_time->{date},"%Y-%m-%dT%H%M%z");
+
+	$first_doc->set_projection;
+
+	# This changes for every image
+	my $extra_size=10;
+	my @wn=Gvar::ll2pl($Instr,-1,list $lonlat->mslice(X,0,0));
+	my @ws=Gvar::ll2pl($Instr,-1,list $lonlat->mslice(X,-1,0));
+	my @es=Gvar::ll2pl($Instr,-1,list $lonlat->mslice(X,-1,-1));
+	my @en=Gvar::ll2pl($Instr,-1,list $lonlat->mslice(X,0,-1));
+	my @reg=map(int $_,(($wn[0]<$ws[0])?$wn[0]:$ws[0],
+			    ($es[1]>$ws[1])?$es[1]:$ws[1],
+			    ($en[0]>$es[0])?$en[0]:$es[0],
+			    ($en[1]<$wn[1])?$en[1]:$wn[1]));
+    
+	my @bbox=($reg[0]-$extra_size,$reg[1]+$extra_size,
+		  $reg[2]+$extra_size,$reg[3]-$extra_size);
+	
+	my $scene=new GvarX::Scene(bbox=>\@bbox,channels=>[1]);
+
+
+	# Skip unmatched starting files;
+	unless ($datetime_id =~ /$match_start/) {
+	    log_file(rast=>$datetime_id,
+		     status=>'wrong time',
+		     frame=>$frame,scene=>$scene,
+		     ca=>[@ws,@wn,@en,@es,@ws]);
+	    last FRAME;
+	}
+
+	# Skip non spatially matched files;
+	unless ($scene->match($frame)) {
+	    log_file(rast=>$datetime_id,
+		     status=>'no overlap',
+		     frame=>$frame,scene=>$scene,
+		     ca=>[@ws,@wn,@en,@es,@ws]);
+	    last FRAME;
+	}
+
+	syslog('info',"$file--Read Frame");
+	# Read and Verify frame
+	my $rows=$scene->read_frame($frame);
+	my ($c,$r)=$scene->size;
+
+	# Skip incomplete images (why?)
+	unless ($r==$rows) {
+	    log_file(rast=>$datetime_id,
+		     status=>'incomplete',
+		     frame=>$frame,scene=>$scene);
+	    last FRAME;
+	}
+	    
+	# Okay now we need to reproject that data into our new fs.
+	my($w,$s,$e,$n)=@{$scene->{bbox}};
+	my $vis = $scene->{pdl}->[1];
+	if (0) {
+	    my($w,$s,$e,$n)=@{$scene->{bbox}};
+	    $n=-$n; $s=-$s;
+	    $n+=0.5; $s-=0.5,$e+=0.5;$w-=0.5;
+	    pdl_to_rast($vis,mapset=>$date_id,location=>'goes10',
+			rast=>"vis$time_id",
+			region=>{north=>$n,south=>$s,
+				 east=>$e,west=>$w,
+				 cols=>$c,rows=>$r});
+	}
+	syslog('debug',"$file---Reprojecting");
+	
+	my $doc=$scene->{doc}->[int($rows/2)];
+	$doc->set_projection;
+	#$doc->set_special if ($try eq 'test');
+	
+	my (undef,$cn,$rn)=$lonlat->dims;
+	my $rc = zeroes float,$lonlat->dims;
+	my $rad = zeroes(float,$cn,$rn);
+	$|=1;
+	for my $lat (0..$rn-1) {
+	  print STDERR "$lat:$rn\r" if 0;
+	    for my $lon (0..$cn-1) {
+		my($c,$r) = Gvar::ll2pl(1,-1,list $lonlat->slice(":,$lon,$lat"));
+		(my $foo=$rc->slice(":,$lon,$lat")).=float($r,$c);
+		(my $foo2=$rad->slice("$lon,$lat")).=
+		    $vis->at(int($c-$w+.5),int($r-$n+.5));
+	    }
+	}
+	my $region=new Grass::Region($Grass->location."/2km/WIND");
+	    
+	pdl_to_rast($rad,location_name=>California,
+		    mapset=>$date_id,
+		    rast=>"vis$time_id",
+		    region=>$region,
+		    ) if (1);
+	
+	pdl_to_rast($rc->slice("(0),:,:"),
+		    rast=>"rows$time_id",
+		    region=>$region,
+		    ) if (0);
+	
+	pdl_to_rast($rc->slice("(1),:,:"),
+		    rast=>"cols$time_id",
+		    region=>$region,
+		    ) if (0);
+
+	log_file(rast=>$datetime_id,
+		 status=>'processed',
+		 frame=>$frame,scene=>$scene,
+		 ca=>[@ws,@wn,@en,@es,@ws]);
+		
+	syslog('info',"$file-processed");
+    }
+}
+
+  if ($daemon) {
+      sleep $sleep;
+      redo DAEMON;
+  }
+}
+
+sub log_file {
+    my %p = @_;
+    my $frame=$p{frame};
+    my $scene=$p{scene};
+    my $first_doc=$frame->first_doc;
+    my $file=$frame->{input};
+    my $status=$p{status};
+    my $rast=$p{rast};
+    my @ca=(0,0,0,0,0,0,0,0,0,0,0,0);
+    @ca=(@{$p{ca}}) if defined $p{ca};
+    
+    my $epoch=$first_doc->{oa}->{epoch}->asString;
+
+    my $sql=sprintf
+	(
+	 "insert into gvar (filename,status,scene,ifram,epoch,imc,processed,footprint,ca,bbox) values (%s,%s,%s,%d,'%s',%s,%s,'%s','%s','%s')",
+	 $dbh->quote($file),
+	 $dbh->quote($status),
+	 $dbh->quote($rast),
+	 $first_doc->{IFRAM},
+	 sprintf("%s %s",substr($epoch,0,8),substr($epoch,8)),
+	 $dbh->quote(($first_doc->{ISCAN}->IMC_active)?'T':'F'),
+	 $dbh->quote(strftime("%a %b %e %H:%M:%S %Y", localtime)),
+	 sprintf('SRID=0;BOX3D(%d %d,%d %d)',@{$frame->bbox}),
+	 sprintf('SRID=0;POLYGON((%d %d,%d %d,%d %d,%d %d,%d %d))',@ca),
+	 sprintf('SRID=0;BOX3D(%d %d,%d %d)',@{$scene->{bbox}}),
+	 );
+
+    syslog('info',"$file--$status");
+    syslog('debug',"$file--$sql");
+    $rv=$dbh->do($sql);
+    if (defined($rv)) {
+	syslog('debug',"$file-added to $dsn");
+    } else {
+	syslog('error',"$file-failed to update $dsn %s",$dbh->err);
+    }
+}
+
+sub pdl_to_rast {
+    my($pdl,%g) = @_;
+    $Grass->location_name($g{location}) if $g{location};
+    $Grass->set_or_new_mapset($g{mapset}) if $g{mapset};
+    system "g.mapsets mapset=$g{mapset},2km,PERMANENT";    
+
+    my $tmpdir=join("/",$Grass->location,$Grass->mapset,'pdl');
+    mkdir $tmpdir || die "Can't make $tmpdir";
+
+    writefraw($pdl,"${tmpdir}/$g{rast}");
+
+    my $r=$g{region};
+    my $r_in_bin="r.in.bin -f input=$tmpdir/$g{rast} north=$r->{north} south=$r->{south} east=$r->{east} west=$r->{west} r=$r->{rows} c=$r->{cols} output=$g{rast} 2>/dev/null";
+    syslog 'info',"$r_in_bin";
+    system "$r_in_bin";
+    system "r.colors map=$g{rast} color=grey > /dev/null";
+}
+
+# Errors need to be trapped and this executed...
+sub close {
+  $dbh->disconnect;
+  syslog('info',"Stopping GVAR");
+  closelog();
+  exit;
+}
+
+
+__END__
+=pod
+
+=head1 SYNOPSIS
+
+  gvard - Constantly Read GVAR files and parse them up
+
+=head1 SYNOPSIS
+
+  gvard --ll=lonlat_file
+    --help   brief help message
+    --man    full documentation
+    --ll     file of longitudes and latitudes for indexing GVAR
+    --(no)daemon Keep looping
+    --syslog=facility  'debug' goes to STDOUT
+    --(no)remove  whether to erase downloaded files
+    --sleep=seconds   time between queries to server
+    --match=UNKNOWN.*  filename match on server
+    --dsn=dbi:Pg:dbname=goes.cstars.ucdavis.edu  where to store info
+    --host=url  Where to get index.
+    --cache=directory  Where to store files
+    --(no)clobber    Redo exisiting files
+    --on-gvar=cmd Command to run on each new GVAR file.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+  Print a brief help message and exits.
+
+=item B<--man>
+
+  Prints the manual page and exits.
+
+
+=head1 DESCRIPTION
+
+B<gvard> will look on the GOES server, and download new files, and
+subset them and reproject them.
+
+=cut
+
+
+

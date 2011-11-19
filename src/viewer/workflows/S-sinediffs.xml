@@ -1,0 +1,121 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="S-sinediffs" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="SDF Director" class="ptolemy.domains.sdf.kernel.SDFDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{395, 30}">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={104, 139, 816, 512}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[600, 400]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0964207857397">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{264.617578125, 173.41171875}">
+    </property>
+    <entity name="Sine" class="geostreams.ptolemy.actor.StreamSineActor">
+        <doc>Sine</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[30.0, 100.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="50">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[425.0, 100.0]">
+        </property>
+    </entity>
+    <entity name="AbsoluteDifference" class="geostreams.ptolemy.actor.StreamAbsoluteDifferenceActor">
+        <doc>AbsoluteDifference</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[280.0, 265.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer2" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="300 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="50">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[440.0, 160.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer3" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 300 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="50">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[450.0, 265.0]">
+        </property>
+    </entity>
+    <entity name="Sine2" class="geostreams.ptolemy.actor.StreamSineActor">
+        <property name="roiParam" class="ptolemy.data.expr.StringParameter" value="13000 6000 22000 8500">
+        </property>
+        <doc>Sine</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[30.0, 160.0]">
+        </property>
+    </entity>
+    <entity name="Difference" class="geostreams.ptolemy.actor.StreamDifferenceActor">
+        <doc>Difference</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[215.0, 335.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer4" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="300 300 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="50">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{445, 325}">
+        </property>
+    </entity>
+    <relation name="relation8" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[185.0, 100.0]">
+        </vertex>
+    </relation>
+    <relation name="relation9" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[80.0, 160.0]">
+        </vertex>
+    </relation>
+    <relation name="relation10" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex" value="{0.0, 0.0}">
+        </vertex>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex" value="{0.0, 0.0}">
+        </vertex>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="Sine.output" relation="relation8"/>
+    <link port="StreamViewer.input" relation="relation8"/>
+    <link port="AbsoluteDifference.input" relation="relation8"/>
+    <link port="AbsoluteDifference.output" relation="relation3"/>
+    <link port="AbsoluteDifference.input2" relation="relation9"/>
+    <link port="StreamViewer2.input" relation="relation9"/>
+    <link port="StreamViewer3.input" relation="relation3"/>
+    <link port="Sine2.output" relation="relation9"/>
+    <link port="Difference.input" relation="relation8"/>
+    <link port="Difference.output" relation="relation2"/>
+    <link port="Difference.input2" relation="relation9"/>
+    <link port="StreamViewer4.input" relation="relation2"/>
+</entity>

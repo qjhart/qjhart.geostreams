@@ -1,0 +1,11 @@
+Install this package with the following command:
+
+GVAR_INCLUDEDIR=<include_dir_of_libgvar> GVAR_LIBDIR=<lib_dir_of_libgvar> make
+
+for example: GVAR_INCLUDEDIR=/home/jiezhang/pkgs/include/libgvar GVAR_LIBDIR=/home/jiezhang/pkgs/lib make install
+
+To run the GRASS writer program, type the following command:
+
+LD_LIBRARY_PATH=<lib_dir_of_libgvar>:$LD_LIBRARY_PATH ./create_grass_files
+
+for example: LD_LIBRARY_PATH=/home/jiezhang/pkgs/lib:$LD_LIBRARY_PATH ./create_grass_files

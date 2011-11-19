@@ -1,0 +1,76 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="ImageDifferencing" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="5.0.1">
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={0, 0, 998, 629}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[778, 512]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{191.5719696969697, 185.5200441919192}">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-115.0, 110.0]">
+        </property>
+    </property>
+    <property name="_documentation" class="ptolemy.data.expr.FileParameter" value="/home/carueda/prg/ptII5.0.1/doc/index.htm">
+    </property>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <property name="GeoStreams server spec" class="ptolemy.data.expr.FileParameter" value="file:/home/carueda/goesdata/local/local.xml">
+        </property>
+        <doc>Reads a GeoStreams stream and blah blah blah</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-150.0, 0.0]">
+        </property>
+    </entity>
+    <entity name="AddSubtract" class="ptolemy.actor.lib.AddSubtract">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[125.0, 10.0]">
+        </property>
+    </entity>
+    <entity name="Delay" class="geostreams.ptolemy.actor.DelayActor">
+        <doc>Delay</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-10.0, 55.0]">
+        </property>
+    </entity>
+    <entity name="Threshold" class="geostreams.ptolemy.actor.ThresholdActor">
+        <doc>Threshold</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[225.0, 10.0]">
+        </property>
+    </entity>
+    <entity name="QueryDispatcher" class="geostreams.ptolemy.actor.we.QueryDispatcherActor">
+        <doc>QueryDispatcherActor </doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[255.0, 105.0]">
+        </property>
+    </entity>
+    <entity name="NetInterface" class="edu.ucdavis.geostreams.actor.we.NetInterfaceActor">
+        <doc>NetInterfaceActor </doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[370.0, 105.0]">
+        </property>
+    </entity>
+    <entity name="StreamServer" class="edu.ucdavis.geostreams.actor.we.StreamServerActor">
+        <doc>StreamServer</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{370, 10}">
+        </property>
+    </entity>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <vertex name="vertex1" value="[-50.0, 0.0]">
+        </vertex>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <relation name="relation4" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <link port="ImageStreamReader.output" relation="relation3"/>
+    <link port="AddSubtract.plus" relation="relation3"/>
+    <link port="AddSubtract.minus" relation="relation2"/>
+    <link port="AddSubtract.output" relation="relation"/>
+    <link port="Delay.input" relation="relation3"/>
+    <link port="Delay.output" relation="relation2"/>
+    <link port="Threshold.input" relation="relation"/>
+    <link port="Threshold.output" relation="relation4"/>
+    <link port="StreamServer.input" relation="relation4"/>
+</entity>

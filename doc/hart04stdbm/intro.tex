@@ -1,0 +1,63 @@
+\section{Introduction}
+\label{sec:intro}
+
+New methods for processing streaming data \cite{babcoc02model-issues,
+  carney02monit-stream, heller00adapt-query} have a great deal of
+potential impact for remotely-sensed geospatial image data originating
+from the various satellites orbiting the Earth.  Besides its
+typically large bandwidth, \acf{RSI} data has a number of
+characteristics that are different from generic streaming data.  One
+important difference is that streaming RSI data is highly organized
+with respect to it's spatial components.  This organization varies for
+different data streams, but generally image data will come into the
+stream as single objects.  The objects may be individual pixels, rows
+of pixels, or complete images.  The organization of the pixels within
+these objects is well defined, and consecutive objects are spatially
+close to one another.
+
+In addition, most queries to an \ac{RSI} data stream include
+operations to restrict the geospatial data to be precessed to
+specified regions of interest.  Therefore, an RSI stream management
+system needs to efficiently intersect incoming geospatial image
+data with a possibly large number of query regions.
+
+In this paper, we present a method for intersection incoming
+geospatial image data with multiple spatial restrictions, that is,
+queries that request incoming data over particular regions only. For
+this, we introduce the \acf{ct}, a structure to index query regions
+and to provide for efficient insertions and deletions of queries. In
+particular, the DCT supports stabbing point queries. That is, for
+incoming geospatial image data, the structure is used to efficiently
+determine what queries are affected by the incoming data. For this, we
+exploit the trendiness inherent to most types of streaming RSI data.
+Based on the information provided by the DCT, query plans can be
+generated and incoming data can be pipelined to respective query
+operators, thus providing the basis for multiple-query processing models
+and concepts for streaming RSI data.
+
+%Treating remotely sensed data as a stream of data is inspired by the
+%recent advancements in \acl{dsms}~. In such systems, data
+%arrives in multiple, continuous, and time-varying data streams and
+%does not take the form of persistent relations.  
+
+%% discuss a method for intersecting an incoming image
+%% data stream with multiple spatial restrictions, that is queries that
+%% request incoming data streams over a particular area only.  We assume
+%% that the incoming data stream is organized in one of the three most
+%% common organizations described below and that queries expect their
+%% results in the same organization.  In addition, we require a data
+%% structure that is dynamically updatable to support queries being
+%% inserted and deleted.
+
+The remainder of the paper is structured as follows. In
+Section~\ref{sec:model}, we outline the data and query model
+underlying \ac{RSI}.  Section~\ref{sec:dct} describes the \ac{ct} in
+detail.  Section~\ref{sec:performance} discusses the performance of
+the \ac{ct}, and implications of input regions and stabbing point
+trends.  Section~\ref{sec:mods} describes extensions and modifications
+of the \ac{ct} for similar problems.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "hart04stdbm"
+%%% End: 

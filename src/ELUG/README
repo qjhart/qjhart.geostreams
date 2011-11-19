@@ -1,0 +1,63 @@
+ELUG conversion readme
+
+by Haiyan Yang 
+   Jul 13, 2005
+
+The Elug class provides methods that convert GOES line/pixel to lat/lon 
+and vice versa.  
+
+Elug calls functions in ELUG_C.c.  Attention: since we use C code for 
+the C++ class, in the Makefile, gcc is used to compile both C and C++ 
+files, but g++ has to be used to link objects.  Otherwise it would 
+create problems.  
+
+The following methods have to be called to set up the necessary parameters
+to do the conversion.
+
+	1. setRec(): passes the 336 O and A variables from GVAR block 0.
+	2. setcons(): sets constants in common INSTCOMM. 
+              !!! After the program starts to run, this method has to be
+	          called again to set different constants whenever the
+		  spacecraft is inverted back and forth. i.e. flipflag value 
+	          is changed from 1 to -1 or from -1 to 1.
+	3. time50(): gets the values of epoch and time for lmodel call.
+	4. setFlipflag(): sets Flipflag value.
+	5. setImc(): sets IMC value.
+	6. setInstr(): sets Instrument Imager(1) or Sounder(2) 
+	7. lmodel(): this methods calculates the value of subsatllite lat/lon.    
+	
+Now the class is ready to convert line/pixel or lat/lon for you.
+
+	1. pl2ll() accepts pixel/line and return lat/lon in radiant.
+	2. ll2pl() accepts lat/lon in radiant and return line/pixel.
+
+Methods to get the subsatellite lat/lon:
+	1. getSubsatLat() ;
+        2. getSubsatLon() ;
+
+Other methods:
+	1. getEvln();
+	2. getScpx();
+	3. evln();
+	4. scpx();
+
+For debugging purpose: 
+
+	Both methods pl2ll() and ll2pll() perform two steps.  The first step is
+	pl2se() for pl2ll() and ll2se() for ll2pl(), which converts input to scan
+	and elev values.  
+
+	A comparison can be made to test if the first step is correct:
+	1. After call pl2ll() or ll2pl(), users call
+		getEvln() and getScpx() to get the values of elev and scan.
+	2. Call evln() and scpx() directly to get the values of elev and scan.
+
+
+
+  
+"make testCplus" will create the executable 
+testCplus. (not make !!!)
+
+> testCplus 
+		
+	       		

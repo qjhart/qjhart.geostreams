@@ -1,0 +1,52 @@
+OVERVIEW
+--------
+
+Client is poll-based for multiple clients.  I got ideas esp. basic
+outline for polling and idea of linked free and busy connections from
+http://www.mathopd.org/
+
+Basic Idea is that on initialization, a fixed number of clients are
+started.  Each has an associated fd with it.  All active clients get
+'polled' in a single connection.  If any of them are active, then the
+read and process happens.
+
+TODO
+----
+Add Changelog
+Add $ID$ info to code
+
+Assumptions
+-----------
+Current Request is '\n' delimited
+Client input is < CLIENT_INPUT_BUFFER_SIZE
+
+LOG
+---
+
+Currently, I'm using syslog, rather than a standalone logger.  This
+needs to be changed for Thursday's class.
+
+
+CODE UGLINESS
+-------------
+
+Currently, I use server mostly like an object, but I also use it one
+place as a global variable, for clients to add/sub themselves from
+free/busy lists.  I should really do one or the other probably,
+clients couldj of course point back to the server, but we will have
+multiple servers?
+
+Presumably epoll is better, but I'm planning on using poll as the
+event monitor for the system.  I would like to use epoll instead,
+however, This is only in 2.5 kernels, so I'm not sure it's kosher.
+Will have to ask.
+
+SPEED
+-----
+I make function calls while debugging, this could be compiled out for
+better speed.
+
+
+
+
+

@@ -1,0 +1,66 @@
+# DO NOT DELETE
+
+gvnetapi.o: /usr/include/sys/types.h /usr/include/features.h
+gvnetapi.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+gvnetapi.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+gvnetapi.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h
+gvnetapi.o: /usr/include/bits/typesizes.h /usr/include/time.h
+gvnetapi.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+gvnetapi.o: /usr/include/bits/confname.h /usr/include/sys/socket.h
+gvnetapi.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+gvnetapi.o: /usr/include/bits/socket.h /usr/include/limits.h
+gvnetapi.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/limits.h
+gvnetapi.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+gvnetapi.o: /usr/include/asm/sockios.h /usr/include/netinet/in.h
+gvnetapi.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+gvnetapi.o: /usr/include/bits/in.h /usr/include/endian.h
+gvnetapi.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+gvnetapi.o: /usr/include/arpa/inet.h /usr/include/stdio.h
+gvnetapi.o: /usr/include/libio.h /usr/include/_G_config.h
+gvnetapi.o: /usr/include/wchar.h /usr/include/gconv.h
+gvnetapi.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stdarg.h
+gvnetapi.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+gvnetapi.o: /usr/include/string.h /usr/include/stdlib.h
+gvnetapi.o: /usr/include/netinet/tcp.h gvnetapi.h gvarHeader/gvarHeader.h
+gvnetapi.o: include/types.h gvarBlock/gvarBlock.h lineDoc/lineDoc.h
+gvnetapi.o: include/gvar.h utils/unpack/unpack10.h block1to10/block1to10.h
+gvarHeader/gvarHeader.o: gvarHeader/gvarHeader.h /usr/include/string.h
+gvarHeader/gvarHeader.o: /usr/include/features.h /usr/include/sys/cdefs.h
+gvarHeader/gvarHeader.o: /usr/include/gnu/stubs.h
+gvarHeader/gvarHeader.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h
+gvarHeader/gvarHeader.o: include/types.h
+gvarBlock/gvarBlock.o: gvarBlock/gvarBlock.h include/types.h
+gvarBlock/gvarBlock.o: gvarHeader/gvarHeader.h /usr/include/string.h
+gvarBlock/gvarBlock.o: /usr/include/features.h /usr/include/sys/cdefs.h
+gvarBlock/gvarBlock.o: /usr/include/gnu/stubs.h
+gvarBlock/gvarBlock.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h
+utils/unpack/unpack10.o: utils/unpack/unpack10.h include/types.h
+lineDoc/lineDoc.o: lineDoc/lineDoc.h include/types.h include/gvar.h
+lineDoc/lineDoc.o: /usr/include/stdio.h /usr/include/features.h
+lineDoc/lineDoc.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+lineDoc/lineDoc.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h
+lineDoc/lineDoc.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+lineDoc/lineDoc.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+lineDoc/lineDoc.o: /usr/include/_G_config.h /usr/include/wchar.h
+lineDoc/lineDoc.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+lineDoc/lineDoc.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stdarg.h
+lineDoc/lineDoc.o: /usr/include/bits/stdio_lim.h
+lineDoc/lineDoc.o: /usr/include/bits/sys_errlist.h gvarBlock/gvarBlock.h
+lineDoc/lineDoc.o: gvarHeader/gvarHeader.h /usr/include/string.h
+lineDoc/lineDoc.o: utils/unpack/unpack10.h lineDoc/SpaceCraftIDText.h
+lineDoc/lineDoc.o: lineDoc/SourceChannelIDText.h
+block1to10/block1to10.o: block1to10/block1to10.h gvarBlock/gvarBlock.h
+block1to10/block1to10.o: include/types.h gvarHeader/gvarHeader.h
+block1to10/block1to10.o: /usr/include/string.h /usr/include/features.h
+block1to10/block1to10.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+block1to10/block1to10.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h
+block1to10/block1to10.o: lineDoc/lineDoc.h include/gvar.h
+block1to10/block1to10.o: /usr/include/stdio.h /usr/include/bits/types.h
+block1to10/block1to10.o: /usr/include/bits/wordsize.h
+block1to10/block1to10.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+block1to10/block1to10.o: /usr/include/_G_config.h /usr/include/wchar.h
+block1to10/block1to10.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+block1to10/block1to10.o: /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stdarg.h
+block1to10/block1to10.o: /usr/include/bits/stdio_lim.h
+block1to10/block1to10.o: /usr/include/bits/sys_errlist.h
+block1to10/block1to10.o: utils/unpack/unpack10.h

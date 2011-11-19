@@ -1,0 +1,15 @@
+<svg>
+<rect x="-16" y="-16"
+ width="40" height="25"
+ style="fill:0xffffcc;stroke-width:1"
+/>
+<text x="-20" y="4"
+ style="font-size:20; fill:black; font-family:SansSerif">
+  D
+</text>
+<text x="0" y="-2"
+ style="font-size:12; fill:black; font-family:SansSerif">
+  {delay}
+</text>
+</svg>
+

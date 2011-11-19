@@ -1,0 +1,7 @@
+real					T_FLOAT
+E_f						T_DOUBLE
+doublereal				T_DOUBLE
+#doublereal *			T_PTROBJ
+doublereal *			T_PTROBJ
+integer *				T_PTROBJ
+integer					T_IV

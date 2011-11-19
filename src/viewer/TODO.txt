@@ -1,0 +1,23 @@
+geostreams viewer todo
+Carlos A. Rueda-Velasquez
+$Id: TODO.txt,v 1.6 2007/01/09 05:57:21 crueda Exp $
+
+  - Automatically update vector data according to changing 
+    parameters in the gvar stream.
+
+  - Aspect adjustment should be done only for visualization;
+    eg., saved bg image would be a proportional reduction of 
+    the original image size in both axes.
+  	
+  - Examine the design for new commands in vizstreams (besides the 
+	current command line options) to connect to a new workflow server.
+	  		  
+  - Metadata: more info needs to be transmitted from the server.
+    For example, for a timestamp, it'd be better to have that info
+    from the gvar stream itself
+
+  - Combine 3 channels into an RGB image following some standard
+    color mappings to highlight vegetation and other characteristics..
+
+  - Frame borders are not displayed in order of arrival
+	

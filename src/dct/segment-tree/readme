@@ -1,0 +1,5 @@
+
+Before running make, you need to setup the following two environment variables:
+
+CGAL_LIB_DIR
+CGAL_MAKEFILE

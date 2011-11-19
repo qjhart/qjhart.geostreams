@@ -1,0 +1,35 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="ReaderAndViz" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="5.0.1">
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={203, 0, 820, 517}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[600, 400]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{102.5719696969697, 129.5200441919192}">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-125.0, -30.0]">
+        </property>
+    </property>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <property name="GeoStreams server spec" class="ptolemy.data.expr.FileParameter" value="file:/home/carueda/goesdata/local/local.xml">
+        </property>
+        <doc>Reads a GeoStreams stream and blah blah blah</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{-130, 30}">
+        </property>
+    </entity>
+    <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <doc>Visualizes a GeoStreams stream and blah blah blah</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{115, 25}">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <link port="ImageStreamReader.output" relation="relation"/>
+    <link port="ImageStreamViewer.input" relation="relation"/>
+</entity>

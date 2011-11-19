@@ -1,0 +1,17 @@
+MngStream TODO
+mngstream - Module for MNG stream management
+Carlos A. Rueda
+$Id: TODO.txt,v 1.2 2004/08/10 21:15:52 crueda Exp $
+
+
+- A better solution to determine when a full scan has finished.
+
+- MngStreamClient code is the new general refactoring to read the
+  mng stream. MainPanel/MngPanel should use this new scheme to avoid
+  replication of code.
+  
+- (ImageMagick) display xxx.mng reports:
+	 DEFI chunk found in MNG-VLC
+  So, check the simplicity flag!
+
+

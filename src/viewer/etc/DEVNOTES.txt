@@ -1,0 +1,36 @@
+Vector datasets devnotes
+$Id: DEVNOTES.txt,v 1.6 2007/09/12 09:11:03 crueda Exp $
+
+09/12/07
+	New program elug.cimis.ll2pl.raster.  See ../DEVNOTES.txt
+	
+08/02/07
+	New program elug.cimis.ll2pl.  See ../DEVNOTES.txt
+	
+07/22/07
+	New program elug.ll2pl
+	
+06/20/07
+	Added a README-retrieve_elug_params.txt file under the gvar_module
+	to remember how I'm running that program to generate rec.dat:
+		cd src/gvar_module
+		LD_LIBRARY_PATH=../libgvar/.libs  ./retrieve_elug_params
+
+12/07/06
+	Modified retrieve_elug_params.cpp (in gvar_module) such that the
+	generated file now has the following format:
+	    float[336]            -- as before
+	    "imc=%d\n"
+	    "flipflag=%d\n"
+	    "iofnc=nscyc1=%d"
+	    "iofni=nsinc1=%d\n"
+	    "iofec=ewcyc1=%d\n"
+	    "iofei=ewinc1=%d\n"
+	    "%d,%d,%d,%d,%d\n"    -- epoch time: year, day, hrs, min, sec
+	    "%d,%d,%d,%d,%d\n"    -- curr  time: year, day, hrs, min, sec
+
+	The additional parameters are necessary to initialize the ELUG
+	module accordingly. These parameters are now read by myelug.cpp
+	
+	Makefile: now also used to generate the vector datasets.
+	

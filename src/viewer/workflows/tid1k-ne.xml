@@ -1,0 +1,109 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="tid1k-ne" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[335.0, -70.0]">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={187, 119, 760, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[544, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{197.3636363636363, 66.5157828282828}">
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="12">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="Temporal image differencing&#10;(Threshold of absolute difference)">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-70.0, -100.0]">
+        </property>
+    </property>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-25.0, -14.999999999999996]">
+        </property>
+    </entity>
+    <entity name="ImageStreamViewer2" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="30">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[190.0, -15.0]">
+        </property>
+    </entity>
+    <entity name="Delay" class="geostreams.ptolemy.actor.DelayActor">
+        <property name="roiParam" class="ptolemy.data.expr.StringParameter" value="5800 2500 21000 6500">
+        </property>
+        <doc>Delay 1</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[75.0, 85.0]">
+        </property>
+        <port name="bufferOutput" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="SOUTH">
+            </property>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+        </port>
+    </entity>
+    <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="300 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="30">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[365.0, 50.0]">
+        </property>
+    </entity>
+    <entity name="Difference" class="geostreams.ptolemy.actor.DifferenceActor">
+        <doc>Difference</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[185.0, 50.0]">
+        </property>
+    </entity>
+    <entity name="Threshold" class="geostreams.ptolemy.actor.ThresholdActor">
+        <property name="thresholdParam" class="ptolemy.data.expr.StringParameter" value="2">
+        </property>
+        <doc>Threshold</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[270.0, 50.0]">
+        </property>
+    </entity>
+    <entity name="NetInterface" class="geostreams.ptolemy.Workflow">
+        <doc>Net-enables a workflow</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{295, 115}">
+        </property>
+    </entity>
+    <relation name="relation4" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex" value="[30.0, -15.0]">
+        </vertex>
+    </relation>
+    <relation name="relation5" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation6" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="ImageStreamReader.output" relation="relation4"/>
+    <link port="ImageStreamViewer2.input" relation="relation4"/>
+    <link port="Delay.input" relation="relation4"/>
+    <link port="Delay.output" relation="relation6"/>
+    <link port="ImageStreamViewer.input" relation="relation5"/>
+    <link port="Difference.input" relation="relation4"/>
+    <link port="Difference.output" relation="relation"/>
+    <link port="Difference.input2" relation="relation6"/>
+    <link port="Threshold.input" relation="relation"/>
+    <link port="Threshold.output" relation="relation5"/>
+</entity>

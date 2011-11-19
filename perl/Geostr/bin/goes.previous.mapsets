@@ -1,0 +1,52 @@
+#! /usr/bin/perl -w
+
+use Date::Manip;
+
+use Getopt::Long qw[:config prefix_pattern=(--|-|) ];
+use Pod::Usage;
+use IO::Dir;
+
+our $days=14;
+our $exists=1;
+our $rast=undef;
+our $count=0;
+our $delim=',';
+our $quote=0;
+ 
+GetOptions(
+	   'days=s'=>\$days,
+	   'exists!'=>\$exists,
+	   'rast=s'=>\$rast,
+	   'delim=s'=>\$delim,
+	   'count!'=>\$count,
+	   'quote!'=>\$quote,
+	  );
+
+pod2usage(msg=>"Not in GRASS",exitval=>1) unless $ENV{GISRC};
+pod2usage(msg=>"Specify rast",exitval=>1) unless $rast;
+
+
+my $mapset=`g.gisenv MAPSET`;
+my $today=ParseDate($mapset);
+my $start=DateCalc($today,"-$days days");
+my $end=DateCalc($today,"+1 days");
+
+my @dates=ParseRecur('0:0:0:1:0:0:0',$start,$start,$end);
+my @mapsets=map(UnixDate($_,"%Y-%m-%dT%H%M"),@dates);
+
+my @ans;
+foreach my $mapset (@mapsets) {
+    if ($exists) {
+	system "g.findfile element=cellhd file=$rast mapset=$mapset >/dev/null";
+	push @ans,"$rast\@$mapset" unless $?;
+    } else {
+      push @ans,"$rast\@$mapset";
+    }      
+}
+if ($count) {
+    print $#ans+1;
+} else {
+    @ans = map("\"$_\"",@ans) if $quote;
+    print join($delim,@ans),"\n";
+}
+

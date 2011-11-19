@@ -1,0 +1,59 @@
+Here is how I'm setting up my environment to build and run the
+the ptolemy actors and run some tests for net-enabling a model using vergil.
+
+Quick steps to build/run some tests on windows:
+  set environment:
+	setenv.bat
+    runvergil.bat    (also ant vergil, but less preferable)
+    runclient.bat    (also ant client)
+
+what follows is valid in general, but some details are for linux:
+
+* The file $PTII/ptolemy/configs/basicActorLibrary.xml should include:
+    <input source="edu/ucdavis/geostreams/actor/geostreamsactors.xml"/>
+  NOTE: The basicActorLibrary.xml is the only file that needs to be
+  adjusted within the Ptolemy installation.
+  
+  For convenience, I have my own copy of basicActorLibrary.xml under a
+  classpath that takes priority, and which looks like:
+  
+	<?xml version="1.0" standalone="no"?>
+	<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+	    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+	<group>
+	  <input source="geostreams/ptolemy/geostreamsactors.xml"/>
+	  <input source="ptolemy/actor/lib/sources.xml"/>
+	  <input source="ptolemy/actor/lib/sinks.xml"/>
+	  <input source="ptolemy/actor/lib/array.xml"/>
+	  ...
+	</group>
+
+* Depending on name changes or new actors, update the (CLASSPATH-referenced)
+  resource geostreams/ptolemy/geostreamsactors.xml as necessary.
+
+* I put some convenience definitions in my .bashrc:
+	PTII=/home/carueda/prg/ptII5.0.1
+	PATH=$PTII/bin:$PATH
+	JAVAFLAGS=-enableassertions
+	CLASSPATH=/home/carueda/carueda/PhD/geostreams/cvs/src/viewer/_generated/DIST/geostreams.jar:/home/carueda/carueda/PhD/geostreams/cvs/src/viewer/_generated/DIST/geostreams-actors.jar
+	export CLASSPATH PTII JAVAFLAGS
+	
+* To compile the core library geostreams.jar, and the actors geostreams-actors.jar:
+	ant compile-actors
+
+* Run a ptolemy model:
+	vergil workflows/DelayProducer2.xml 
+
+* Running a server-client test:
+	# Server:
+		cd /home/carueda/carueda/PhD/geostreams/cvs/src/viewer
+		vergil workflows/Reader1.xml
+		
+	# Client:
+		cd /home/carueda/carueda/PhD/geostreams/cvs/src/viewer
+		java edu.ucdavis.geostreams.actor.we.Client --get <stream-name>
+
+
+
+--------------------------------------------------------------------------------
+$Id: BUILD.txt,v 1.7 2006/11/28 21:21:58 crueda Exp $

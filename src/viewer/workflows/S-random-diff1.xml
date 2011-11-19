@@ -1,0 +1,61 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="S-random-diff1" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[300.0, 35.0]">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={83, 250, 801, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[585, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.2399660532798">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{234.28515625, 115.0938167735043}">
+    </property>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="30">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[330.0, 135.0]">
+        </property>
+    </entity>
+    <entity name="Random" class="geostreams.ptolemy.actor.StreamRandomActor">
+        <doc>Random</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{105, 85}">
+        </property>
+    </entity>
+    <entity name="Constant" class="geostreams.ptolemy.actor.StreamConstantActor">
+        <doc>Constant</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{115, 140}">
+        </property>
+    </entity>
+    <entity name="AbsoluteDifference" class="geostreams.ptolemy.actor.StreamAbsoluteDifferenceActor">
+        <doc>AbsoluteDifference</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[235.0, 105.0]">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="StreamViewer.input" relation="relation3"/>
+    <link port="Random.output" relation="relation"/>
+    <link port="Constant.output" relation="relation2"/>
+    <link port="AbsoluteDifference.input" relation="relation"/>
+    <link port="AbsoluteDifference.output" relation="relation3"/>
+    <link port="AbsoluteDifference.input2" relation="relation2"/>
+</entity>

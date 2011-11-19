@@ -1,0 +1,221 @@
+#! /usr/bin/perl -w
+#use lib '/home/users/qjhart/perl/Gvar/blib/arch /home/users/qjhart/perl/Gvar/blib/lib';
+
+use strict 'vars';
+
+use Pod::Usage;
+use Gvar;
+use Gvar::FrameIH;
+use Getopt::Long;
+use File::Temp qw/ tempfile tempdir /;
+use PDL;
+use Date::Manip;
+
+my @ch = (undef,{},{},{},{},{});
+
+my @block_info=(undef,
+		[
+		 {channel=>4,records=>[0,1]},
+		 {channel=>5,records=>[2,3]},
+		],
+		[
+		 {channel=>2,records=>[0,1]},
+		 {channel=>3,records=>[2]},
+		],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+		[{channel=>1,records=>[0]}],
+	       );
+
+my @block_count;
+
+our $debug=undef;
+our $datetime_id_only=undef;
+
+GetOptions(
+	   'id!'=>\$datetime_id_only,
+           'debug!'=>\$debug,
+	   );
+
+my $date_id=undef;
+my $time_id=undef;
+my $datetime_id=undef;
+my $bbox=undef;
+my $aisct=undef;
+my $outf=undef;
+my $last_bid;
+
+FILE: for my $file (@ARGV) {
+  my $frame = new Gvar::FrameIH(input => "$file");
+  $frame->open;
+  
+  my $doc=undef;
+  my $first_doc=undef;
+  
+  while (! $frame->eof) {
+    my $header=$frame->read_header;
+    my $bid=$header->{block_id};
+    my $block=$frame->read_block(Header=>$header,Data=>1);
+  TYPE:{
+      ($header->isDoc) && do {
+	$doc=$block;
+	if ($doc->{ISCAN}->frame_start) {
+	  $first_doc=$doc;
+	  $frame->{first_doc}=$doc;
+	  # Check Start time...
+	  my $start_time=$first_doc->{TCHED};
+	  $date_id=UnixDate($start_time->{date},"%Y-%m-%d");
+	  $time_id=UnixDate($start_time->{date},"%H%M");
+	  $datetime_id=UnixDate($start_time->{date},"%Y-%m-%dT%H%M%z");
+	  if ($datetime_id_only) {
+	      print $datetime_id;
+	      exit 0;
+	  }
+	  $bbox=$frame->bbox();
+	  $aisct=$doc->{AISCT};
+	  # Open new tempfiles for every channeln
+
+	  foreach my $i (1..5) {
+	    my $c=$ch[$i];
+	    $c->{fh} = new File::Temp (TEMPLATE=>'r.in.vik.XXXXX', 
+					    DIR => '/var/tmp',
+					     UNLINK => 1);
+	    my ($dx,$dy)=divisor($frame,$i);
+	    $c->{NODATA}=ushort zeroes(($doc->{IEFPX}-$doc->{IWFPX}+1)/$dx);
+	  }
+	} else {
+	  $aisct++;
+	  printf STDERR "Out of Order Doc block" 
+	    unless $doc->{AISCT}==$aisct;
+	}
+	$last_bid=0;
+	last TYPE;
+      };
+      ($bid>10) && do { last TYPE; }; # Sounder, etc
+      
+      # Some checks on data blocks
+      printf STDERR "Block Out Of Order %d",$header->{block_count}
+	if $bid != ++$last_bid;
+      
+      printf STDERR "block:%d data_valid_flag=0\n",$header->{block_count}
+	unless $header->{data_valid_flag};
+      
+      printf STDERR "block:%d invalid read\n",$header->{block_count}
+	unless defined($block->{records});
+
+      #print $header->asString,"\n";
+      $block_count[$bid]++;
+
+      foreach my $i (@{$block_info[$bid]}) {
+	foreach my $r ( @{ $block->{records} }[@{$i->{records}}] ) {
+	  my $pdl;
+	  my $ref;
+	  if ($header->{data_valid_flag}) {
+	    $pdl=$r->{data};
+	  } else {
+	    $pdl=$ch[$i->{channel}]->{NODATA};
+	  }
+	  #bswap2($pdl);
+	  $ref=$pdl->get_dataref();
+	  # These in reality need to be calibrated.
+	  $ch[$i->{channel}]->{count}++;
+	  syswrite($ch[$i->{channel}]->{fh},$$ref) || 
+	    printf STDERR "Error Writing block %d",$header->{block_count};
+	}
+      }
+      last TYPE;
+    };
+  }
+    
+  my($west,$south,$east,$north)=@{$frame->bbox};
+  $north*=-1; 
+  $south*=-1;
+  # There is some weirdness with the sizes
+  $south+=4;
+  
+  foreach my $i (1..5) {
+    my ($n,$s,$e,$w);
+    my ($dx,$dy)=divisor($frame,$i);
+    my ($c,$r)=( ($east-$west+1)/$dx, ($north-$south+1)/$dy );
+    $n=$north+$dy/2; $s=$south-$dy/2,$e=$east+$dx/2;$w=$west-$dx/2;
+    my $input=$ch[$i]->{fh}->filename;
+    my $rast=join("_",$datetime_id,$i);
+    
+    my $r_in_bin="r.in.bin bytes=2 input=$input north=$n south=$s east=$e west=$w r=$r c=$c output=$rast";
+    print STDERR $r_in_bin;
+    system "$r_in_bin";
+    system "r.colors map=$rast color=grey";
+  }
+}
+
+# These should be in Frame
+{
+  my @DIV = (undef,[1,1],[4,4],[4,8],[4,4],[4,4]);
+  sub divisor {
+    shift; 
+    @{ (undef,[1,1],[4,4],[4,8],[4,4],[4,4])[shift] || [1,1] } ; 
+  } 
+}
+
+sub size {
+  my $frame = shift;
+  my $a = $frame->bbox;
+  my $ch = shift || 1;
+  my @div = divisor($frame,$ch);
+#  my @div = $frame->divisor($ch);
+
+  # Compute the X,Y
+  (1 + int(($$a[2]-$$a[0]) / $div[0]),1 + int(($$a[1]-$$a[3]) / $div[1]));
+}
+
+__END__
+=pod
+
+=head1 SYNOPSIS
+
+  gvard - Constantly Read GVAR files and parse them up
+
+=head1 SYNOPSIS
+
+  gvard --ll=lonlat_file
+    --help   brief help message
+    --man    full documentation
+    --ll     file of longitudes and latitudes for indexing GVAR
+    --(no)daemon Keep looping
+    --syslog=facility  'debug' goes to STDOUT
+    --(no)remove  whether to erase downloaded files
+    --sleep=seconds   time between queries to server
+    --match=UNKNOWN.*  filename match on server
+    --dsn=dbi:Pg:dbname=goes.cstars.ucdavis.edu  where to store info
+    --host=url  Where to get index.
+    --cache=directory  Where to store files
+    --(no)clobber    Redo exisiting files
+    --on-gvar=cmd Command to run on each new GVAR file.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+  Print a brief help message and exits.
+
+=item B<--man>
+
+  Prints the manual page and exits.
+
+
+=head1 DESCRIPTION
+
+B<gvard> will look on the GOES server, and download new files, and
+subset them and reproject them.
+
+=cut
+
+
+

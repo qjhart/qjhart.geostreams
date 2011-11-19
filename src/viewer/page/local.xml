@@ -1,0 +1,19 @@
+<!-- Complementary information --> 
+<GeoStreams server="file:/home/carueda/goesdata/local">
+
+	<!-- should be given by the server as part of the basic info -->
+	<ReferenceSpace x="0" y="0" width="30676" height="15769"/>
+	
+	<!-- Image used as background.  ``#'' is replaced with the channel ID -->
+	<saved pattern="file:/home/carueda/goesdata/local/saved_#.jpg"/>
+	
+	<!-- channel used for overview (nodata) -->
+	<overview channel="2"/>
+	
+	<!-- vector data. Only the first one is currently used -->
+	<Vectors>
+		<Vector name="Shorelines" url="file:/home/carueda/goesdata/local/geolines.txt"/>
+	</Vectors>
+	
+</GeoStreams>
+

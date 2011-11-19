@@ -1,0 +1,420 @@
+#! /usr/bin/make  -f
+
+# This is the shell to use when running programs.
+SHELL:=/bin/bash
+
+# Are we currently Running Grass?
+ifndef GISRC
+  $(error Must be running in GRASS)
+endif
+
+GISDBASE:=$(shell g.gisenv GISDBASE)
+LOCATION_NAME:=$(shell g.gisenv LOCATION_NAME)
+MAPSET:=$(shell g.gisenv MAPSET)
+
+# Shortcut Directories
+loc:=$(GISDBASE)/$(LOCATION_NAME)
+mapset:=$(loc)/$(MAPSET)
+rast:=$(loc)/$(MAPSET)/cellhd
+window:=$(loc)/$(MAPSET)/windows
+# etc is our special location for non-grass datafiles
+etc:=$(loc)/$(MAPSET)/etc
+
+# Source:  You need to set this to access a different source mapset
+source:=$(MAPSET)
+
+
+# Plan you need to set this for this program to work
+averaging:=undef
+plan:=each
+# Which test to use
+user:=1
+
+info:
+	@echo GISRC: $(GISRC)
+	@g.gisenv;
+
+####################################################################
+# Some nice functions
+# These are for being included inside rules 
+####################################################################
+# $(call mask,$(mask_raster)), you had better call unmask to save
+ifdef use_mask
+
+define mask
+	g.rename rast=$(1),MASK
+endef
+
+define unmask
+	g.rename rast=MASK,$(1)
+endef
+
+else
+
+define mask
+endef
+
+define unmask
+endef
+
+endif
+
+####################################################################
+# Region Creation for a resolution Number
+# $(1) Operator Name
+# $(2) Resolution number
+# $(3) Box
+####################################################################
+#define region_resolution_number
+#$(warning region_resolution_number $(1),$(2),$(3))
+#$(window)/$(1)_$(2):
+#        box=( $(3) ); \
+#        g.region res=$(shell echo 2^$(2) | bc) w=$$$${box[0]} s=$$$${box[1]} e=$$$${box[2]} n=$$$${box[3]}; \
+#        g.region save=$(1)_$(2)
+#
+#endef
+
+###################################################################
+# Region Routine
+# $(1) - Region Name
+# $(2) - w,s,e,n
+# $(3) - ewres,nsres#
+###################################################################
+define region_boxes
+$(warning region_boxes name=$(1),w,s,e,n=$(2),ewres,nsres=$(3))
+
+.PHONY: $(1)
+
+clean::
+	g.remove region=$(1) > /dev/null
+
+$(window)/$(1):
+	box=( $(2) ); \
+	g.region w=$$$${box[0]} s=$$$${box[1]} e=$$$${box[2]} n=$$$${box[3]}; \
+	res=( $(3) ); \
+	if (( $$$${\#res[*]}==2 )); then echo g.region ewres=$$$${res[0]} nsres=$$$${res[1]}; else if (( $$$${\#res[*]}==1 )); then echo g.region res=$$$$res; fi; fi \
+	g.region save=$(1)
+
+endef
+
+###################################################################
+# Region Routine
+# $(1) - Region Name
+# $(2) - Region command
+###################################################################
+define region
+
+$(warning region save=$(1),$(2))
+
+clean::
+	g.remove region=$(1) > /dev/null
+
+$(window)/$(1):
+	g.region save=$(1) $(2)
+
+endef
+
+####################################################################
+# Mask from Region
+# $(1) - MASK name
+# $(2) - Region name
+# Creates a simple MASK of where the query is located 
+####################################################################
+define MASK_from_region
+$(warning MASK_from_region $(1),$(2))
+
+.PHONY: MASK_$(1)
+
+clean:: 
+	g.remove rast=MASK_$(1) > /dev/null
+
+MASK_$(1): $(rast)/MASK_$(1)
+
+$(rast)/MASK_$(1): $(window)/$(2);
+	g.region region=$(2);
+	eval `g.region -g`; \
+	g.region w=`echo $$$$w-$$$$ewres*2 | bc` s=`echo $$$$s-$$$$nsres*2 | bc` e=`echo $$$$e+2*$$$$ewres | bc` n=`echo $$$$n+$$$$nsres*2 | bc`;
+	r.mapcalc MASK_$(1)=1;
+
+endef
+
+####################################################################
+# Mask Creation created from a set of Other Masks
+# $(1) = Output Function
+# $(2) = Old Masks
+####################################################################
+define MASK_conflate
+$(rast)/MASK_$(1): $(window)/$(1) $(patsubst %,$(rast)/MASK_%,$(2))
+	g.region region=$(1);
+	and=`echo $(6) | perl -n -a -e 'print join("||",map("MASK_$$$$_",@F));'`; \
+	r.mapcalc MASK_$(1)=$$$$and;
+
+endef
+
+####################################################################
+# Mapset Creation
+# $(1) Mapset
+# $(2) Location
+# If the Mapset doesn't exist, then create it.
+####################################################################
+define mapset
+
+$(2)/$(1):
+	mkdir $(2)/$(1);
+	cp $(GISDBASE)/$(2)/PERMANENT/DEFAULT_WIND $(GISDBASE)/$(2)/$(1)/WIND;
+
+endef
+
+
+####################################################################
+# Query Routine
+# $(1) - output
+# $(2) - source
+####################################################################
+.PHONY: queries
+
+define query
+
+.PHONY: $(1)
+
+clean::
+	g.remove rast=$(1) > /dev/null
+
+$(1): $(rast)/$(1)
+
+$(rast)/$(1): $(rast)/$(2) $(window)/$(1)
+	g.region region=$(1);
+	g.copy rast=$2,$1 2>&1 > /dev/null
+
+queries:: $(rast)/$(1)
+
+endef
+
+
+###################################################################
+# Node Mask Routine
+# $(1) - Output
+# $(2) - Dependancy
+# $(3) - w,s,e,n
+# $(4) - ewres,nsres
+# $(5) - Queries
+#
+###################################################################
+define node_mask
+
+.PHONY: $(1)
+
+$(1): $(rast)/$(1)
+
+$(rast)/$(1): $(rast)/$(2)
+	box=( $(3) ); \
+	g.region w=$$$${box[0]} s=$$$${box[1]} e=$$$${box[2]} n=$$$${box[3]}; \
+	res=( $(4) ); \
+	g.region ewres=$$$${res[0]} nsres=$$$${res[1]}; \
+	r.mapcalc MASK=$(5)
+
+endef
+
+
+# These rename the input channels to there proper size
+#.PHONY: ch1_0
+#ch1_0: $(rast)/ch1_0
+#$(rast)/ch1_0: $(rast)/ch1
+#	g.rename input=$< output=$@
+
+#.PHONY: ch2_2
+#ch2_2: $(rast)/ch2_2
+#$(rast)/ch2_2: $(rast)/ch2
+#	g.rename input=$< output=$@
+
+#.PHONY: ch3_32
+#ch3_32: $(rast)/ch3_32
+#$(rast)/ch3_32: $(rast)/ch3
+#	g.rename input=$< output=$@
+
+#.PHONY: ch4_2
+#ch4_2: $(rast)/ch4_2
+#$(rast)/ch4_2: $(rast)/ch4
+#	g.rename input=$< output=$@
+
+#.PHONY: ch5_2
+#ch5_2: $(rast)/ch5_2
+#$(rast)/ch5_2: $(rast)/ch5
+#	g.rename input=$< output=$@
+
+####################################################################
+# Channel interpolation. For channels that need to be interpolated
+# so that they can be combined with other channels
+# $(1) - output
+# $(2) - input
+####################################################################
+
+define interpolate
+
+clean::
+	g.remove rast=$(1) > /dev/null
+
+$(rast)/$(1): $(rast)/$(2) $(window)/$(1) $(if,ifdef use_mask,$(rast)/$(1)_MASK,,)
+	g.region region=$(1)
+	$(call mask,$(1)_MASK)
+	r.bilinear input=$(2) output=$(1) || true;
+	$(call unmask,$(1)_MASK)
+
+endef
+
+# Some channels need rules for making interpolated values
+#$(eval $(call interpolate,ch2_0,ch2_2))
+#$(eval $(call interpolate,ch2_1,ch2_2))
+#$(eval $(call interpolate,ch3_0,ch3_32))
+#$(eval $(call interpolate,ch3_1,ch3_32))
+#$(eval $(call interpolate,ch3_2,ch3_32))
+#$(eval $(call interpolate,ch4_0,ch4_2))
+#$(eval $(call interpolate,ch4_1,ch4_2))
+#$(eval $(call interpolate,ch5_0,ch5_2))
+#$(eval $(call interpolate,ch5_1,ch5_2))
+
+
+####################################################################
+# Channel halving, Create all smaller versions of input files.
+# $(1) - output
+# $(2) - input
+####################################################################
+
+define halve
+
+clean::
+	g.remove rast=$(1) > /dev/null;
+
+$(rast)/$(1): $(rast)/$(2) $(window)/$(1) $(if,ifdef use_mask,$(rast)/$(1)_MASK)
+	g.region region=$(1)
+	$(call mask,$(1)_MASK)
+	r.halve input=$(2) output=$(1)
+	$(call unmask,$(1)_MASK)
+
+endef
+
+
+####################################################################
+# Channel halving, Create all smaller versions of input files.
+# $(1) - output
+# $(2) - size
+####################################################################
+#define halve_by_num
+
+#$(rast)/$(1)_$(2): $(rast)/$(1)_$(shell let i=$(2)-1;echo $$i) $(window)/$(1)_$(2)
+#	g.region region=$(1)_$(2)
+#	r.halve input=$(1)_$(shell let i=$(2)-1; echo $$i) output=$(1)_$(2)
+#endef
+
+#$(foreach i,1 2 3 4 5 6 7,$(eval $(call halve_by_num,ch1,$(i))))
+#$(foreach i,3 4 5 6 7,$(eval $(call halve_by_num,ch2,$(i))))
+#$(foreach i,4 5 6 7,$(eval $(call halve_by_num,ch3,$(i))))
+#$(foreach i,3 4 5 6 7,$(eval $(call halve_by_num,ch4,$(i))))
+#$(foreach i,3 4 5 6 7,$(eval $(call halve_by_num,ch5,$(i))))
+
+
+####################################################################
+# Average Routine
+# This is the function required to make neighbors
+# $(1) - Output Name
+# $(2) - Source
+# $(3) - Size
+####################################################################
+
+define average
+
+$(warning average $(1),$(2),$(3))
+
+.PHONY: $(1)
+
+clean::
+        g.remove rast=$(1) > /dev/null
+
+$(1): $(rast)/$(1)
+
+$(rast)/$(1): $(window)/$(1) $(if,ifdef use_mask,$(rast)/$(1)_MASK)
+	g.region region=$(1)_$(2);
+	$(call mask,$(1)_MASK)
+	r.neighbors input=$(2) output=$(1) method=average size=$(3);
+	$(call unmask,$(1)_MASK)
+endef
+
+
+####################################################################
+# MapCalc Routine w size_number
+# This is the function required to make binary calculations
+# $(1) - Output Name
+# $(2) - Size Number
+# $(3) - Source(s)
+# $(4) - Equation
+####################################################################
+nums:=1 2 3 4 5 6 7 8 9
+
+define mapcalc_by_size_number
+
+$(warning mapcalc $(1),$(2),$(3),$(4))
+
+.PHONY: $(1)_$(2)
+
+clean::
+        g.remove rast=$(1)_$(2) > /dev/null
+
+$(1)_$(2): $(rast)/$(1)_$(2)
+
+$(rast)/$(1)_$(2): $(patsubst %,$(rast)/%_$(2),$(3)) $(window)/$(1)_$(2) $(if,ifdef use_mask,$(rast)/$(1)_$(2)_MASK,)
+	g.region region=$(1)_$(2);
+	$(call mask,$(1)_$(2)_MASK)
+	r.mapcalc $(1)_$(2)='$(shell echo '$(4)' | m4 $(foreach n,$(wordlist 1,$(words $(3)),$(nums)),-D B$(n)=$(word $(n),$(3))_$(2)))'
+	$(call unmask,$(1)_$(2)_MASK)
+
+endef
+
+####################################################################
+# MapCalc Routine
+# This is the function required to make binary calculations
+# $(1) - Output Name
+# $(2) - Source(s)
+# $(3) - Equation
+####################################################################
+
+define mapcalc
+
+$(info mapcalc $(1),$(2),$(3))
+
+.PHONY: $(1)
+
+clean::
+	g.remove rast=$(1) > /dev/null
+
+$(1): $(rast)/$(1)
+
+$(rast)/$(1): $(patsubst %,$(rast)/%,$(2)) $(window)/$(1) $(if,ifdef use_mask,$(rast)/$(1)_MASK,)
+	g.region region=$(1);
+	$(call mask,$(1)_MASK)
+	echo '$(3)' | m4 $(foreach n,$(wordlist 1,$(words $(2)),$(nums)),-D B$(n)=$(word $(n),$(2)))
+	r.mapcalc $(1)="$(shell echo '$(3)' | m4 $(foreach n,$(wordlist 1,$(words $(2)),$(nums)),-D B$(n)=$(word $(n),$(2))))"
+	$(call unmask,$(1)_MASK)
+
+endef
+
+
+##########################################################################
+# Aggregation
+##########################################################################
+
+
+###########################################################################
+#
+# Plan  Building
+#
+###########################################################################
+
+$(etc)/$(plan)_$(user).in:
+	perl -I ~/projects/geostreams/perl/Geostr/blib/lib ~/projects/geostreams/perl/Geostr/bin/goes.make-plan user=$(user) averaging=$(averaging) plan=$(plan)_$(user) > $@
+
+$(etc)/%.mk: $(etc)/%.in
+	cat $< | grep -v '^#' | grep -v '^$$' | sed -e 's/\(.*\)/$$(eval $$(call \1))/' > $@
+
+include $(etc)/$(plan)_$(user).mk
+
+#r.mapcalc density=`perl -e 'print "20-(".join("+",map("isnull(MASK_Q$_)",1..20)).")";'`

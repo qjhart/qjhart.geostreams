@@ -1,0 +1,24 @@
+Jul 18, 2005  testOne.cpp is fixed for both ll2pl and pl2ll
+	      tests. One more test not in the ELUG DOC was
+	      added into similartest.c.
+	      
+	      Default Rec array is added into the Elug constructor
+	      for test purpose.  
+
+	      The order of parameters of Elug methods are changed
+	      to lon, lat and pixel, line.  
+
+Jul 13, 2005  Comments are added into ELUG.h and ELUG.cpp
+	      The package has tested all lat/lon and pixel/line
+	      conversion cases as described in the ELUG 
+	      document, and the results are all correct.  
+
+Jul 11, 2005  This version gets rid of the connection between 
+	      ELUG_C.[ch] and library lf2c.  The transformation
+	      from lat/lon to pixel/line is added into the ELUG
+	      methods. 
+ 
+              Attention: lat/lon have to be converted to radiant 
+	      values to be passed into ELUG.ll2pl(****).
+
+

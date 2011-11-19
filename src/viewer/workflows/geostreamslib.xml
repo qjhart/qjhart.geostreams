@@ -1,0 +1,50 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE class PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<class name="Geostreams Library" extends="ptolemy.moml.EntityLibrary">
+    <configure>
+        <group>
+            <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={104, 127, 816, 512}, maximized=false}">
+            </property>
+            <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[600, 400]">
+            </property>
+            <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+            </property>
+            <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{75.5486111111111, 59.5153093434344}">
+            </property>
+            <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+                <property name="GeoStreams server" class="ptolemy.data.expr.StringParameter" value="http://geostreams.ucdavis.edu/~carueda/applet/dev/geostreams2.xml">
+                </property>
+                <doc>Imports a GeoStreams stream</doc>
+                <property name="_location" class="ptolemy.kernel.util.Location" value="{33.767361111111086, -55.63312815656559}">
+                </property>
+            </entity>
+            <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+                <property name="frame location" class="ptolemy.data.expr.StringParameter" value="0 0 230 230">
+                </property>
+                <property name="Saved" class="ptolemy.data.expr.FileParameter" value="http://geostreams.ucdavis.edu/~carueda/vizstreams/saved/current/saved_2.jpg">
+                </property>
+                <doc>Visualizes an image stream</doc>
+                <property name="_location" class="ptolemy.kernel.util.Location" value="{38.767361111111086, 24.18718434343441}">
+                </property>
+            </entity>
+            <entity name="RegionOfInterest" class="geostreams.ptolemy.actor.RegionOfInterestActor">
+                <property name="roi" class="ptolemy.data.expr.StringParameter" value="9600 4000 20000 9000">
+                </property>
+                <doc>RegionOfInterest</doc>
+                <property name="_location" class="ptolemy.kernel.util.Location" value="{48.103298611111086, 105.94499684343441}">
+                </property>
+            </entity>
+            <entity name="Delay1" class="geostreams.ptolemy.actor.DelayActor">
+                <property name="delay" class="ptolemy.data.expr.StringParameter" value="1">
+                </property>
+                <doc>Delay 1</doc>
+            </entity>
+            <entity name="Test" class="geostreams.ptolemy.actor.TestActor1">
+                <doc>Test</doc>
+                <property name="_location" class="ptolemy.kernel.util.Location" value="{76.54861111111109, 190.4215593434344}">
+                </property>
+            </entity>
+        </group>
+    </configure>
+</class>

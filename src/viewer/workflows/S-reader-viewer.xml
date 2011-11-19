@@ -1,0 +1,81 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="S-reader-viewer" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[115.0, 250.0]">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={395, 145, 572, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[356, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.1360626637739">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{203.408060515873, 219.8767361111111}">
+    </property>
+    <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="10">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="A client workflow. It gets two&#10;streams from a server workflow&#10;and visualizes them.">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[175.0, 215.0]">
+        </property>
+    </property>
+    <entity name="mwi" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="1">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[90.0, 105.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="60">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[240.0, 105.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="mwi + lwi" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="+">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[90.0, 170.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer2" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="300 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="60">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[240.0, 170.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="mwi.output" relation="relation"/>
+    <link port="StreamViewer.input" relation="relation"/>
+    <link port="mwi + lwi.output" relation="relation2"/>
+    <link port="StreamViewer2.input" relation="relation2"/>
+</entity>

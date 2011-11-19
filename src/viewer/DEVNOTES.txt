@@ -1,0 +1,1507 @@
+geostreams viewer devnotes
+Carlos A. Rueda-Velasquez
+$Id: DEVNOTES.txt,v 1.208 2008/01/04 04:54:07 crueda Exp $
+
+01/03/08
+	- removed org.kepler.monitor (already in kepler repository)
+	
+	- Did a full check-out of kepler & ptolemy
+	- To run my workflows:
+		- ant update-kepler
+		- then, run the original kepler:
+			cd $KEPLER
+			ant run-dev
+		  and load the workflow.
+	- Also, compiling this project against kepler.jar
+	
+		  
+09/12/07
+	- new etc/elug.cimis.ll2pl.raster to convert the GRASS ascii 
+	  rasters lat.raster and long.raster into a single ascii raster
+	  pixlin.raster2 as follows:
+
+      It's called like this (under etc/):
+	      ./elug.cimis.ll2pl.raster
+	      
+	  I created the input rasters as follows in casil using grass5:
+		GRASS: > r.out.ascii input=long output=long.raster null=N
+	  similarly for lat.raster.
+	  
+	The goal is to create a temperature raster for california
+	that can be compared with the rasters in casil..
+	
+		  
+09/09/07
+	- Checked in org.kepler.monitor in my CVS, while the time comes
+	  to chech in in the kepler repository.
+	  
+	NOTE!
+	These recent changes have been tested using the current
+	kepler image in my project workspace/kepler. Since there are changes
+	(specifically, PortEvent stuff instead of TokenSent), the environment 
+	(classpaths) for the scripts bin/runkepler.sh and bin/runvergil.sh 
+	needs to be updated!  While this is done, I'm doing just "installing"
+	the jars in ${update-kepler} as defined in build.properties:
+		ant update-kepler
+	and then, in workspace/kepler:
+		ant run-dev
+	and open the workflow using the GUI, or, for example:
+		ant -Dworkflow=../viewer/workflows/S-reader-viewer.xml run-wf
+		
+	  
+09/04/07
+	- Monitor Icons:
+		- First preliminary version now working.
+		- New code inserted in my kepler image under package org.kepler.monitor
+		
+  
+	  
+08/22/07
+	- New geostreams.goes.TemperatureConversion to factor out the raw infrared
+	  count to temperature conversion.
+	- GoesInfraredToTemperatureActor updated accordingly.
+	  
+	- New utility geostreams.util.PgUpdateGoesPoints that reada GOES point data 
+	  CSV file and update a postgresql table including the temperature value 
+	  using the TemperatureConversion class.
+	
+08/03/07
+	- FIXME: GetPointData.SaverTask should re-read the point locations
+	  (currently the locations are read only once at beginning of program).
+	
+08/02/07
+	- Running getpointdata.sh on geostreams
+	- CimisGoesPointReaderActor updated to read the csv from a URL,
+	  so it can be used to get the data being updated on geostreams.
+	  
+	- new etc/elug.cimis.ll2pl to convert a regular station location
+	  report (see cimis-download module) to GOES pixel/line coordinates.
+      It's called like this (under etc/):
+	      ./elug.cimis.ll2pl \
+	      	< cimis-stations2007-07-22.csv \
+	      	> pixlin-cimis-stations.csv
+	      	
+	  Working directory in geostreams machine:
+	  	/home/carueda/public_html/goes-pointdata/
+	  I set up an hourly cronjob (at xx:50) to update the station 
+	  pixel/line locations; while getpointdata.sh is getting point data 
+	  every hour around the hour (xx:00). See README.txt over there.
+		
+	
+	
+07/30/07
+	- Generating kepler output in kepler-output/
+	  #1> bin/runkepler.sh  workflows/cimisgoes-regression2.xml
+	  
+	  The RExpression actor in the workflow above is parameterized with the
+	  kepler-output/ as working directory. The following R code has been
+	  added to save the data and the resulting R^2, slope and intersection:
+			sgnf <- function(v, ...)
+			    signif(v, 3, ...)
+	  		...
+			R2 <- summary(model)$r.squared
+		
+			# Save the data for external usage:
+			csvname <- "goescimisdata.csv"
+			csv <- file(csvname, "w")
+			cat(paste("# R2=", sgnf(R2), sep=""), 
+				paste("# m=", sgnf(slope), sep=""), 
+				paste("# b=", sgnf(intercept), sep=""), file=csv, sep="\n")
+			close(csv)
+			write(paste(Independent, Dependent), csvname, append=TRUE)
+		
+	  The regression plot is generated using the png format for immediate
+	  visualization, while gnuplot is used to create a pstricks version for
+	  better inclusion in my thesis (and any other latex doc).
+	  The new script bin/plotregression.sh takes care of generating this
+	  pstricks version, for example (under kepler-output):
+	  	#1> ../bin/plotregression.sh  goescimisdata.csv goescimisdata.pst \
+	  			"Date: 2007-07-30  Hour: 10:00"
+	  
+	  
+	  Included a LatLonToGoesProjectionActor to show that data from the
+	  CimisReader actor needs to be reprojected to the GOES coordinate
+	  system. The actor is currently an "identity" function since the
+	  CimisReader actor is already providing the right projection.
+	  
+	
+07/29/07
+	- Starting to integrate CIMIS and GOES data. This "integration" consists
+	  in performing a linear regression between the two datasets for given
+	  dates and times:
+	  
+	  #1> bin/runkepler.sh  workflows/cimisgoes-regression1.xml
+	  
+	  Some convenience actors for preliminary testing:
+	  	CimisGoesPointReaderActor
+	  	ArrayIntersectActor
+	  	GoesInfraredToTemperatureActor
+	  
+	  This looks good, ie, the expected correlation is observed, although
+	  there are some outliers in the GOES data; perhaps include some
+	  additional information when obtaining the pixel value from GOES to
+	  determine a confidence (eg, using some neighbor statistics).
+	  
+	- Completed the test above: 
+		- outliers can be manually removed by using the "omit indices" 
+		  parameter in ArrayIntersectActor (after looking at the Array Plot);
+		- the resulting R^2 is now shown in the plot.
+	  This test is described in http://comet.cs.ucdavis.edu/wiki/index.php/CimisGoes
+	  
+07/28/07
+	- geostreams.util.GetPointData: A program to get point data from
+	  image streams.
+
+	  In a preliminary test, this is being called as follows:
+	  
+	  bin/getpointdata.sh --streams 0,1,2,3,4 \
+		  --gsSpec http://geostreams.ucdavis.edu/~carueda/applet/dev/geostreams2.xml \
+		  --outputPrefix _realtime_pointdata
+	  
+	  by default, it reads the point locations from:
+	    etc/pixlin-cimis-stations2007-07-22.csv
+	  which was created by generated_ll2pl_conversion_script.sh, which in turn
+	  was created by DATA/ll2pl.sh under the CIMIS project.
+	  
+	  
+	- CimisReaderActor: Reads data from the CIMIS website (using my cimis-download
+	  module) and outputs an array indexed by the station ID.
+	  Preliminary test OK:
+	  	#1>  bin/runvergil.sh workflows/cimis2.xml
+	  	
+	  	
+	  TODO: Integrate the point datasets from the two sources: CIMIS and GOES.
+	  
+	  
+07/20/02
+	- Monitor: Green light actually goes in lower part of a traffic light.
+	
+06/25/07
+	- Monitor for icons
+	
+06/12/07
+	- StreamReaderActor: trick to specify a delay: 
+	  channelID parameter given as: "ID  delay=###"
+	  
+	- IStream: introduce FOV concept
+	
+06/09/07
+	- Port names: no more change in output port name
+	- Search for "TODO port-name" to remove commented code.
+
+06/06/07
+	- IImage:
+		- some reorg
+		- removed int[] IImage.getData()
+		
+	- new Addition, Division operators.
+	  Test:  (ndi = normalized difference index)
+	  	#1> bin/runvergil.sh  workflows/S-ndi1.xml 
+	  Using channels 1 and 3 as they have equal resolutions.
+	  TODO: handle different resolutions
+	
+06/05/07
+	- New StreamAbsoluteDifferenceActor;
+	
+	TODO: factor out common binary operation functionality into 
+	StreamBinaryOperatorActor.
+	
+	- Preliminary tests for proper data format for image values in the
+	context of splitting out the combined AbsDiff operator above:
+		... (Diff) --> (Abs) --> (ATHR) --> [Viewer]
+	In particular, negative value should be handled properly.
+	These new operators are for testing a possible AVAL format:
+		Alpha|Value
+	where  Alpha=1 byte;  Value=3 bytes
+		
+	TODO: Decide a choice:
+		1) Apply the AVAL format in all classes depending on the
+		   BufferedImage of IImages, and add MapColor operators;
+	 or
+		2) Consider a different representation of data in IImages, eg.:
+			a) short[] for data, with a distinguished "missing" value.
+			b) Use WritableRaster
+	
+06/04/07
+	- Workflow-net-interface: Now using NetInterface (not Workflow)
+	New type:NetInterface implements IWorkflow
+
+	- Adjusting client connection:
+		- Client: test program OK
+			#1> bin/runvergil.sh  workflows/S-tid1k-ne.xml
+			#2> bin/runclient.sh
+			
+		- ClientWorkflowImageStreams: OK
+			#1> bin/runvergil.sh  workflows/S-tid1k-ne.xml
+			#2> bin/runvergil.sh  workflows/S-NetReader1l.xml
+				accessing the THR stream
+			
+		  and also: OK:  :-)
+		  	#1> (as above)
+		    #2> bin/runvergil.sh workflows/S-NetReader-ne.xml
+		    #3> bin/runvergil.sh workflows/S-NetReader-ne.xml
+		          with the right socket port settings
+
+		TODO: Because of time contraints I made a few hacks because
+		of the two different schemes intermixed in the code (ie,
+		the IServerConnection vs. IStream); A good cleanup is in
+		order. Among others:
+			1) Focus on IStream 
+			2) Simplify the IImage interface (some operations here
+			   should be done through the IStream interface only)
+		
+		
+	- New type StreamGeneratorActor and some generators:
+		Now StreamReaderActor extends StreamGeneratorActor
+	New types:
+		StreamGeneratorActor
+		StreamSyntheticActor extends StreamGeneratorActor
+		StreamConstantActor extends StreamSyntheticActor
+		StreamRandomActor extends StreamSyntheticActor
+		StreamSineActor extends StreamSyntheticActor
+		
+	Some of the tests:
+			#1> bin/runvergil.sh  workflows/S-k1.xml            (Const)
+			#1> bin/runvergil.sh  workflows/S-random-diff1.xml  (Random)
+			#1> bin/runvergil.sh  workflows/S-sine1.xml         (Sine)
+			
+	
+06/03/07
+	- About TODO : 0 istream
+	  New types:
+		BasicStream
+		IStreamGenerator
+		StreamReaderActor
+		StreamOperatorActor
+		StreamUnaryOperatorActor
+		StreamThresholdActor
+		StreamSinkActor
+		StreamViewerActor
+		StreamViewer
+		StreamViewerControlPanel
+		StreamMapConstantActor
+		StreamBinaryOperatorActor
+		StreamDifferenceActor
+		StreamDelayActor
+		
+	  This is starting to work nicely.
+	  Current tests:
+	  	#1> bin/runvergil.sh  workflows/S-thr1.xml
+	  	#1> bin/runvergil.sh  workflows/S-tid1k-ne.xml
+
+	  Continue with:
+	  	- How to get new status items in an incoming stream?
+		- Workflow-net-interface, client connection
+	     
+	     
+	
+06/02/07
+	  - vizstreams package now based also on the "stream" concept:
+		- ImagePanel: removed dependency on ChannelDef.
+		- GeostreamsViewer: only updated according to general changes;
+		  commited (GeostreamsViewer.java,v 1.10 2007-06-02 19:29:32),
+		  and then finally removed.  
+		  (Also removed associated Main and GeostreamsApplet)
+		- New VizStreams, including main().
+		- New VizStreamsApplet. 
+		  TODO: update references to the applet (applet.html, applet.php ...)
+		
+	- FIXME gscon-integration
+	  Which alternative?: 
+	  	(1) A single IServerConnection allows the addition of new streamDef's
+	  	    (current case); or
+	  	(2) One-to-one relationship between IServerConnection and a streamID
+	  	
+	  Well, actually, each IImage should provide access to its associated "stream";
+	  So, I'm doing some experimentations with a new interface IStream, and a 
+	  new operation IImage.getStream(). I'm copying some of the operations from
+	  IImage and IServerConnection in IStream, which are readily implemented
+	  in the MyStream inner class in BasicImage).
+	  I'm just starting to see how things can be done in a cleaner way.
+	  All these changes are marked with "TODO : 0 istream". The current
+	  basic mechanism will not be changed for now.
+	  
+	  The idea is as follows:
+	  	IStream: provides info about a running stream (channel, some status, etc);
+	  	A different element (perhaps IServerConnection), would provide the operations
+	  	for creating new streams, interrupting streams, and other modification actions
+	  	on streams.  Basically, IStream would be a "read-only" interface regarding the
+	  	status of a particular stream.
+	  	In workflows: a "source" actor would be based on a IServerConnection, but the
+	  	generated images would be associated only with a IStream, not IServerConnection;
+	  	operator actors would only be concerned with IImage and IStream objects: 
+	  	regarding input streams, the operator would be only a client of the interfaces;
+	  	regarding the output, the operator should be able to create, not only new
+	  	IImage objects (as it's currently done), but also IStream objects. Perhaps
+	  	Images can also provide the required methods.
+	  
+	  
+		
+		
+06/01/07
+	- big StreamDef-refactoring almost complete: changes commited!
+	
+	some TODOs:
+	- AbstractStreamActor.gscon: for *both* input and output??
+	- BinaryOperatorActor.gscon2: for input2: just starting to use this..
+	
+	
+05/31/07
+	- big refactoring: using (new class) StreamDef {streamID, ChannelDef}
+	  across the whole framework (almost).
+	  
+05/30/07
+	  In general, a clear stream naming mechanism is required.
+	
+	  Symptom:  bin/runvergil.sh  workflows/tid1k-ne.xml
+		  this is a net-enabled workflow with various output streams; 
+		  currently, only the stream from the Reader gets listed for 
+		  a remote client.
+	  Reason: "derived" streams aren't named properly yet.
+	  
+	Sketch of solution:
+		Currently, the naming of an output stream port is based on
+		a corresponding "channelID"; this has been OK for Reader
+		actors. For derived streams, consider something like this:
+		
+			[Reader]------->[U]-----------+
+			         0          U(0)      |
+			                              v
+			                             [B]-----------------> ...
+			                              ^  B(U(0),V(2))
+			                              |
+			[Reader]------->[V]-----------+
+			         2          V(2)
+
+		where U, V, and B are the corresponding operator names.
+		However, the user should be able to give any name s/he wishes;
+		for example, instead of a complex expression, just use some kind
+		of well-know name, eg. "NDVI", "California NDVI",...
+		
+		Adjustments in many source files, including:
+		
+		geostreams.image:
+			BasicImage.java,v 1.5
+			BasicImageStream.java,v 1.1
+			BasicServerConnection 1.7
+			ClientWorkflowImageStreams.java,v 1.6
+			IImage.java,v 1.2
+			IImageStream.java,v 1.1
+			Images.java,v 1.3
+			IServerConnection.java,v 1.6
+			ServerConnection.java,v 1.8
+			StreamReaderThread.java,v 1.1
+			
+		geostreams.ptolemy:
+			IStreamActor.java,v 1.2
+			PtUtils.java,v 1.3
+			Workflow.java,v 1.17
+			
+		geostreams.ptolemy.actor:
+			AbstractStreamActor.java,v 1.6
+			ImageStreamReaderActor.java,v 1.11
+			
+		geostreams.workflow:
+			DispatchRemoteClient.java,v 1.9
+			IWorkflow.java,v 1.8
+			NIManager.java,v 1.11
+			SimpleWorkflow.java,v 1.17
+
+		some of the changes:
+			removed STREAM_NAME_PREFIX in PtUtils			
+			- IWorkflow.getChannelDefs @deprecated to mark the possible
+			  replacement of "channel" for "stream"
+		TODO: Adjustments STILL TO BE COMPLETED!
+			
+		Workflows seem to be running as usual, eg:
+			#1> bin/runvergil.sh  workflows/view2.xml
+			#2> bin/runvergil.sh  workflows/NetReader2l.xml
+		where only source streams are requested;
+		however, derived streams are still lacking proper assignment of 
+		ChannelDef and naming ...
+		
+				
+	  
+05/29/07
+	- MapConstant can now accept a full color spec including
+	  alpha, eg, 0x200000ff a 0x20-alpha blue color. If color is
+	  given as a decimal, eg, 127, then it's read as the value of
+	  an opaque gray-level color.
+	  
+	- DelayActor: preliminary experimentation using JTS to keep
+	  track of actual area in the _buffer currently intersecting
+	  the incoming stream. NOT working yet: Code sections conditioned
+	  with _useJts.
+	  
+	  
+	- ThresholdActor: now with parameter outputValue, which can be
+	  a full color spec as with MapConstant. Threshold handling still
+	  assumes a gray-level input image.
+	  NOTE: With this change, the output image can be an arbitrary
+	  color: this is just a temporary cosmetic addition for quick
+	  visualization
+	  TODO: a better color-mapping mechanism should be included.
+	   
+	   
+05/28/07
+	- new: UnaryOperatorActor, MapConstantActor
+	
+	- First binary operator developments :
+	class BinaryOperatorActor:
+		* abstract IImage _operate(IImage inImg1, IImage inImg2)
+		  called with non-null input images
+		* fire() takes care of generating nullImage if any of the
+		  input images is null, or _operate returns null.
+		(similar pattern in UnaryOperatorActor).
+		
+	class DifferenceActor extends BinaryOperatorActor:
+		Implemented.
+		
+	- Test: Temporal image differencing:
+		#1> bin/runvergil.sh  workflows/tid1k.xml 
+	  
+	  ==> OK
+	  
+	  However: note that Delay uses a ROI to initialize its internal
+	  buffered image. This buffer is initialized with zeros; so, zero-images
+	  are being generated in response to incoming images whose domain has no
+	  previous image yet. This is NOT as modeled in my research: in this case,
+	  a nullImage should be generated.
+	  	TODO: 
+	  		Idea: Use alpha component as a mask for null pixel values ...
+	  		* See <transparency> sections in DelayActor, DifferenceActor,
+	  		   CanvasImage.
+	  		* CanvasImage: according to the scheme here, do a simple test
+	  		of graphics.drawImage(img-with-transparent-pixel,..) over a
+	  		buffered image. This is working as expected (see TestAlpha in
+	  		geostreams.util) but needs to be revised in the framework in
+	  		general.
+		
+	
+05/26/07
+	- Installed kepler20070526
+		- Adjusted bin/runkepler.sh accordingly
+		- Tested some of the workflows in kepler -> OK
+		
+	- new OperatorIcon used for operators; defined in AbstractStreamActor
+	
+05/25/07
+	- better icon handling in Reader and NI actors.
+	
+05/24/07
+	- Starting to drop ChangeRequests on the topology of the workflow
+	  to instantiate and connect StreamServerActors.
+	  Now, I'm using a new class StreamServer which is a tokenSentListener
+	  to dispath the images to its active clients.
+	  This mechanism is stable compared to the previous one.
+	  However, I found a bug in IOPort._tokenSent which causes 
+	  ConcurrentModificationExceptions to be thrown. 
+	  Workaround: listeners are not removed for now.
+	  
+	
+05/22/07
+	- Icon handling
+	  Motivated by MonitorImage, I did some quick tests with *Icon classes 
+	  in package ptolemy.vergil.icon for a better update of components that
+	  change its GUI dynamically:
+	  - ThresholdActor uses a ShapeIcon:
+			#1> bin/runvergil.sh workflows/thr1.xml
+	  - AbstractWorkflow uses a TextIcon:
+			#1> bin/runvergil.sh workflows/view1.xml
+	  These are working nicely, ie, the interface is updated with no need
+	  for change requests.
+	  
+	  However, I tried SVGIcon and XMLIcon (so I can use the current SVG
+	  definitions directly), but it seems these somehow do require the 
+	  "change request" mechanism.
+	  
+01/16/07
+	- Component geostreams.ptolemy.Workflow is now again an AtomicActor, 
+	  not an Attribute.  Reason: As an attribute, the validate() method used 
+	  to be called in Ptolemy version < 1.0beta, but not any more. 
+	  I used the validate() call to initialize the component. Since the life
+	  cycle for actors is well defined anyway, the best choice is to make 
+	  the Workflow component as an actor.
+	  NOTE: This actor-scheme fits properly with the PN model of computation
+	  (which I use in all my tests). If a different director is used, say SDF,
+	  this scheme might need to be adjusted.
+	  
+	- More factoring based on AbstractStreamActor.
+	
+	- ThresholdActor implemented:
+	    bin/runvergil.sh workflows/thr1.xml
+
+	- TODO: How to model/implement *binary* operators?	  
+	  
+01/13/07
+	- new runkepler.sh to run kepler with a CLASSPATH including
+	  my class directory; for now just for quick preliminary tests.
+
+	- runvergil6.sh: replacement trick
+	- runvergil.sh: simple classpath setting and direct call to VergilUtils
+	  also working fine.
+	  TODO: all of this is just for my dev environment; an easy deployment
+	  of a geostreams demonstration is still to be defined.
+	  
+	- DelayActor implemented:
+	    bin/runvergil.sh workflows/delay1.xml
+	  
+01/12/07
+	- Downloaded, built, and now compiling against Ptolemy II 6.0beta.
+	
+	- Did some tests to "dynamically" set up ptolemy for demoing the 
+	  actors in this project.
+	- New class VergilUtils: allows to run the standard VergilApplication
+	  but a new option "--openLib filename" is processed to open a
+	  library after the vergil GUI is open.
+	- bin/runvergil6.sh: runs a copy of Ptolemy's vergil script in which
+	  the VergilApplication class name is replaced with VergilUtils's.
+
+	- workflows/geostreamslib.xml: a preliminary library.
+	Invocation example:
+	bin/runvergil6.sh workflows/roi1.xml --openLib workflows/geostreamslib.xml
+	
+    TODO: merge runvergil6.sh and runvergil.sh and review other scripts.
+    
+    - some factoring in actor package
+	  
+01/11/07
+	- Preparing image manipulation based on the BufferedImage version of
+	  IImage objects.
+	  
+		- BufferedImage getBufferedImage() (formerly getImage()) now always 
+		  returns a non-null object. 
+		  
+	  	- New helper class Images with operation 
+	  	      createImage(int x, int y, BufferedImage bufImg)
+	  	  to create a new IImage object with similar attributes from a given
+	  	  IImage but with given data (as BufferedImage) and location.
+	  	  
+	- Implemented ROI operator (RegionOfInterestActor).
+		bin/runvergil.sh workflows/roi1.xml 
+	
+	  TODO (low):
+	  	The buffered image reference in BasicImage is a transient field, so
+	  	the data array should contain the corresponding data before writing
+	  	the image in serialized form so the buufered image version can be
+	  	reconstructed.
+	  	Serialization method writeObject(ObjectOutputStream) was added to 
+	  	BasicImage and its subclass MngImageStream.MyBasicImage.
+	  	But I've done NO testing of this. However, no problem should arise 
+	  	as MngImageStream is the only class that doesn't use the data array 
+	  	(only until getData() is called), and this class hasn't been used 
+	  	for a long time.
+	  	  
+
+01/10/07
+	- some preparation to start defining stream operators
+	
+01/09/07
+	- NetReaderActor no longer necessary; 
+	  ImageStreamReaderActor takes also care of opening a net-enabled 
+	  workflow. The server spec can now be given in two ways: 
+	  	1) a URL of the traditional XML spec
+		2) host:port of net-enabled workflow.
+
+	- ServerConnections.openConnection(serverSpec) now takes care
+	  of the two modes of connection. Command-line options updated
+	  accordingly, eg., instead of "--workflow host port", now
+	  "--gsSpec host:port"
+	  
+	- Installed Kepler (kepler20070102) and spent some time attempting 
+	  to create a kar for the ImageStreamReaderActor but with no success. :/
+	  Also, although I was able to complete the build steps in
+	  Exercise-1: Creating your own "HelloWorld" actor 
+	  (http://kepler-project.org/Wiki.jsp?page=KeplerDevelopersTutorial),
+	  ant run-dev" didn't work.
+	  Note: Surely with more time and asking for help on kepler-dev
+	  I would probably be able to prepare a geostreams.kar demo package 
+	  for other kepler users to try; but this is not a priority and very 
+	  time consuming so I have to give up kepler again ;-(
+	  
+01/08/07
+	- ImageStreamViewer{Actor}: Now, using the server connection
+	  associated to the first received IImage, the following
+	  is obtained and handled:
+		- reference space  (was hard-coded previously)
+		- initial full image: ("saved" bg image)
+		- vector datasets
+		- listener to obtain frames events
+
+	  So, the vizstreams *actor* is now working with full functionality
+	  as in the standalone visualizer ;-) !
+	  
+	- TODO: AdHocServerConnection: review and implement pending operations
+	
+01/07/07
+	- About the pending completion of the changes on 12/15/06 so that
+	  vizstreams can get data from a net-enabled workflow:
+	  This is the test on a "simple" (ie., non-ptolemy) workflow:
+	  	#1> bin/simpleworkflow.sh --gsSpec http://geostreams.cs.ucdavis.edu/~carueda/applet/dev/geostreams2.xml
+	  	#2> bin/vizstreams.sh --gsSpec localhost:35813
+	  now working.
+	  TODO: More testing.
+	  	
+	- This is the test on a ptolemy workflow:
+		#1> bin/runvergil.sh workflows/view1.xml
+		     workflow with two output streams and serving on 35813
+		#2> bin/vizstreams.sh --gsSpec localhost:35813
+	  now working
+	  TODOs:
+	  	- The channelID for the overview cannot be opened as a regular
+	  	  stream because exactly this ID is not specially qualified.
+	  	  
+	  New IStreamActor with a preliminary version of a mechanism to
+	  obtain info about the actors that generate image streams.
+	  TODO (low): perhaps there are still some PtUtils methods that
+	  can be rewritten in terms of this new interface.
+
+	- Now available from a Ptolemy workflow so corresponding data can 
+	  now be visualized in vizstreams:
+		- vector information 
+		- savedPattern (background images)
+		  
+	- TODO (low priority):
+	  A SimpleWorkflow, by design, is associated to only ONE IServerConnection, 
+	  while a Ptolemy Workflow may have multiple IServerConnections depending
+	  on the stream readers in the model. Stream ports are named just using
+	  the channelID of the streams and not a more fully qualified name.
+	  I think this prototype can live without too much concern about this.
+	  
+	  Summary of today:
+	  	    [net-enabled workflow] --> [vizstreams]
+	  	is working for both "simple" and ptolemy workflows, including vector
+	  	data and saved (background) initial image as in vizstreams connecting
+	  	directly to a GS server (as given in GS specification).
+	  	TODO: 
+	  		1) more testing and prepare demos
+	  		2) Examine the design for new commands in vizstreams (besides the 
+	  		  current command line options) to connect to a new workflow server.
+		
+01/06/07
+	- Added jnlp mime type to geostreams server.
+	- Updated geostreams wiki with options to launch vizstreams
+	  as WebStart application or applet:
+	  http://geostreams.ucdavis.edu/twiki/bin/view/Main/VizStreams
+	  
+	- vizstreams new option: --bg-height <val> to set the height
+	  manually (ie, no aspect correction). For example:
+	    vizstreams --bg-width 2000 --bg-height 1000
+	  will show a proportional reduction of the original image
+	  size in both axes.
+	  TODO: actually, an explicit mechanism to handle the aspect
+	  should be provided. So far, the aspect constant has been
+	  used to determine the proportion of the canvas, which is
+	  fixed at initialization time.
+
+	- Running the 11/28/06 test on my linux box as follows: 
+		#1> bin/runvergil.sh workflows/view1.xml
+			A "server" workflow listening on 35813
+		#2> bin/runvergil.sh workflows/NetReaderAndServer1.xml
+			A "client-and-server" workflow listening on 35814
+		#3> bin/runclient.sh -port 35814
+			A simple client getting data from #2
+		#4> bin/runvergil.sh workflows/NetReader1l.xml
+			A "client" workflow getting data from #2
+	  ==> OK.
+
+01/03/07
+	Launching VizStreams using Java Web Start
+	See page/jnlp/README.txt
+	Test: http://casil.ucdavis.edu/~crueda/jnlp/vizstreams.html
+	
+	
+12/28/06
+	- preparing linux scripts on my ubuntu.
+	
+12/26/06
+	- Completed preparing dev environment on pollux.
+	
+12/20/06
+	- Committed all the changes (backup purposes)
+	- Need to review and complete these changes!
+12/15/06
+	- ClientWorkflowImageStreams: An IImageStream factory that obtains
+	  the streams from a net-enabled workflow.
+	  
+	  FIXMEs
+	  	DispatchRemoteClient:  properly respond to "overviewChannelID" request
+
+12/11/06
+	- VectorInfo now includes a "selected" attr to better handle its 
+	initial display on the interface.
+	- Included a flag to show the canvas image (ImagePanel.showRasterImage).
+	
+	- BasicServerConnection: using a LinkedHashMap for the channelDefs
+	so the original order is preserved.
+	
+	- A new, more horizontal overview layout, class Overview.OV2.  
+	(old layout still in Overview.OV1 -pretty much).
+	- ViewControlsPanel: order of groups now preserved for viewPopup.
+	- On geostreams.cs: lower resolution for meridians/parallels to reduced repaint
+	 overhead
+	 
+	- vizstreams program: new option --open-all-channels
+	Now this program can be used as follows to easily open all channels and
+	automatically save complete frames:
+		java -Xmx96m -jar geostreams.jar \
+		--base "http://geostreams.ucdavis.edu/~carueda/applet/dev" \
+        --auto-save-frames --open-all-channels
+	
+	- GeostreamsApplet: now the system L&F is set:
+	   http://geostreams.ucdavis.edu/~carueda/applet/appletDec2k6.html
+	
+12/8/06
+	- Applet rebuilt after all the recent changes. Since it's still
+	convenient to support java 1.4 environments, and I'm now using
+	some java.util.concurrent classes, the "retrotranslated" applet 
+	now requires backport-util-concurrent.jar (using v3.0) (downloaded 
+	from http://dcl.mathcs.emory.edu/util/backport-util-concurrent/index.php).
+	The test applet:
+	   http://geostreams.ucdavis.edu/~carueda/applet/appletDec2k6.html
+<applet
+ codebase="http://geostreams.ucdavis.edu/~carueda/applet/dev2"
+ code="geostreams.applet.GeostreamsApplet.class"
+ archive="geostreams4j14.jar,retrotranslator-runtime-0.9.7.jar,backport-util-concurrent.jar"
+ width="100%" height="100%">
+        <param name="geostreams"
+              value="http://geostreams.ucdavis.edu/~carueda/applet/dev/geostreams2.xml">
+        <param name="developer" value="yes">
+</applet>
+
+	`ant geostreams4j14' creates the jar geostreams4j14.jar.
+
+12/7/06
+	- Vector dataset generation updated. Now the required parameters
+	to initialize the ELUG module are stored and retrieved for the
+	rec.dat file. I used this to update the vector datasets today.
+	See etc/README.txt
+
+	- what's a good object type for the image tokens? ... hmmm
+	Might JAI be a good approach?  not sure... For now, I just installed 
+	JAI/JMF again to see the feasibility of this approach. 
+	I created a test workflow viewJAI.xml:
+		G-Reader -> Viewer -> ImageToJAI -> JAIScale -> ImageDisplay
+	which works OK. Seems to demand a lot of CPU, however, especially 
+	when I included a JAIEdgeDetector after rescaling the image ;-)
+	
+12/3/06
+	- ImageStreamViewer: now with an output port to broadcast the
+	  internal CanvasImage via AWTImageTokens so this image can be
+	  used by other standard Ptolemy image actors, eg., ImageDisplay.
+
+12/1/06
+	- what's a good object type for the image tokens? 
+	
+11/30/06
+	- vector dataset now with an optional color attribute. By default,
+	the color will be the last explicitly given to a previous
+	vector in the same group, or 'white' if none has been given.
+	
+	- elug.gshhs.cpp: uses the two parameters (imc,flipflag) = (0,1).
+	I tried the values (1,1), (1,0), and (0,0) to see how much the
+	shorelines are affected. 
+	When imc=0, flipflag has not effect
+	When imc=1, flipflag shows a slight change in result.
+	imc is the parameter most affecting the result (a few pixels).
+
+11/29/06
+	- ServerConnections factory now takes care of xml processing
+	  to create ServerConnection instances.
+	  
+	- Now all vector datasets can be visualized. Main changes done
+	  in ImagePanel including some refactoring around "drawable elements,"
+	  abstract class DrawableElem.
+	  
+	- Vector specification can now contain an attribute "group" to
+	  group various vector datasets under a given name. e.g.,
+	  	<Vector name="name1" url="..." group="shorelines"/>
+	  	<Vector name="name2" url="..." group="shorelines"/>
+	  Radio buttons are used for each group so only one dataset in the
+	  group is drawn at a time. When more than one dataset belong to a
+	  group, one more radio button named "No <group>" is added so the
+	  user can choose not to draw any of the datasets in the group.
+	  
+	- elug.gshhs now accepts options --level and --min_area.
+	  Using these to generate lakes2000.txt and lakes5000.txt:
+	  ./elug.gshhs --level 2 --min_area 5000 GSHHS/gshhs_l.b > lakes5000.txt
+	  ./elug.gshhs --level 2 --min_area 2000 GSHHS/gshhs_l.b > lakes2000.txt
+
+11/28/06
+	- geostreams.* is now the root package.
+	- more cleanup: new bin/ with scripts
+	- 11/27/06 test is now run as follows: 
+		#1> bin\runvergil workflows/view1.xml        
+			A "server" workflow listening on 35813
+		#2> bin\runvergil workflows/NetReaderAndServer1.xml
+			A "client-and-server" workflow listening on 35814
+		#3> bin\runclient -port 35814
+			A simple client getting data from #2
+		#4> bin\runvergil workflows/NetReader1l.xml
+			A "client" workflow getting data from #2
+
+	- ImageStreamViewerActor loading the background image again.
+	
+11/27/06
+	- 11/22/06 problem fixed: In RemoteClient.send removed the check
+	isGeostreamsServerConnection() on the connection associated to the image.
+	Note that Client calls createAdHocServerConnection when it receives a
+	NewImageSequence chunk from the object input stream.
+	
+	- Test done today: 
+		#1> runvergil workflows/view1.xml        
+			A "server" workflow listening on 35813
+		#2> runvergil workflows/NetReaderAndServer1.xml
+			A "client-and-server" workflow listening on 35814
+		#3> runclient -port 35814
+			A simple client getting data from #2
+		#4> runvergil workflows/NetReader1l.xml
+			A "client" workflow getting data from #2
+	  Each workflow with a vizstreams actor.
+	  This is working nicely. See doc/status/20061127.screenshot.png
+
+	- A lot of package renamings -- geostreams.* will be the root package.
+	
+11/22/06
+	- SimpleWorkflow now working very well, including cancelation of streams.
+	
+	- Adjusting GeostreamsViewer and supporting classes according to changes:
+		- now, the standalone vizstreams program is working again, including
+		display of frames and current scan line in the overview.
+	
+	- StreamServerActor: fixed a problem that prevented a client to get a stream
+	on a second connection. The problem was that postfire returned false when
+	no clients were active; however, this actor should keep being fired until
+	the whole model stops execution.
+	
+	- next: fix the following:
+		when a client connects to a workflow containing a NetReader actor, it 
+		prints "RECEIVED: OK-added" but then always an EOFException occurs.
+		To reproduce:
+			shell#1> runvergil workflows/view1.xml        # put to listen on 35813
+			shell#2> runvergil workflows/NetReader1l.xml  # put to listen on 35814
+			shell#3> runclient -port 35814
+	
+11/21/06
+	- BasicServerConnection: more control for notification of events to
+	IConnectionObservers.
+	
+11/20/06
+	- many changes and some refactoring to clean up the design a bit.
+	- The return of the IImageStream interface ;-)
+	
+11/19/06
+	- RemoteClient.send method now *synchronized*
+	
+11/17/06
+	- DESIGN.txt created
+	- many renamings, specially now working around the concept of IWorkflow.
+	- new SimpleWorkflow, a command-line, non-interactive implementation 
+	  of IWorkflow backed on a ServerConnection.
+	  
+	  Tested today with local files:
+	   	simpleworkflow --gsSpec /home/carueda/goesdata/local/local.xml
+	  and actual real-time data!:
+	  	simpleworkflow --gsSpec http://geostreams.ucdavis.edu/~carueda/applet/dev/geostreams.xml
+	  	
+	  in both cases, using clients: 
+	      runclient   # text output
+	      runvergil workflows\NetReader1l.xml # visualization w/ ImageStreamViewer
+	
+11/16/06
+	- More adjustments to properly stop execution after pausing.
+	  Sometimes the stop button needs to be clicked twice, though. Interestingly, there is
+	  a comment in ptolemy's ProcessDirector mentioning something like this.
+	  
+	- Consider the following scenario:
+		- Client requests a stream from the workflow
+		- An SS is created and connected to the corresponding stream-reader
+		- Client receives the stream sent by the SS. 
+		  NOTE: I've been using a local file to obtain the stream; when the file (stream) is
+		  exhausted, the SS connected to the stream-reader will block forever.
+		- Client disconnects (no longer interested in this "so delayed" stream ;-)
+	  The expected behavior is that the SS will be released (assuming this is the only client).
+	  Note that the SS can be unblocked and released when the whole execution is stopped 
+	  (this is working fine). However, it seems complicated just to get this SS actor unblocked/released
+	  letting the workflow continue running. On the other hand, it makes sense the SS remains
+	  blocked as we are in general dealing with unbounded streams.
+
+	- Client: now recognizes the response to the "streams" command so it updates the
+	  interface with a button for each available stream.
+	  
+	  NOTE: the same client can request more than 1 stream from the workfow! 
+	        --> review how this is handled on the server side
+	        
+	  test:  
+	       runvergil workflows/view2.xml 
+	       runclient
+	  	
+	
+11/14/06
+	- Adjustments in ImageStreamViewerActor with improved sync results.
+	
+	- Handling PAUSED state: keep reading from the external streams, but 
+	  discard all incoming images while in PAUSED state.
+
+	-- Redesign: --
+		  
+	package geostreams.ptolemy:
+		class View                   The actual NI component in a net-enabled ptolemy model
+		interface IView              Exported View interface for client code to interact with the model
+		interface IViewObserver      To notify client code about events in the model
+		class StreamServerActor      Dynamically instantiated and connected
+		class PtUtils                Various supporting functions
+		
+	package geostreams.workflow:
+		class ViewObserver           The observer of the ptolemy view of the model
+		class NIManager              Main net-interface manager
+		class NIServer               The server thread
+		class RemoteClient           Main interaction with a remote client
+		class DispatchRemoteClient   Remote client dispatching thread
+	
+	No more references to types in package edu.ucdavis.geostreams.ni.
+	
+11/13/06
+	- Starting a refactoring for an improved design:
+		- new package geostreams.workflow:
+			Will contain the handling of a workflow in a manner that is mostly
+			independent of the actual model implementation.
+			
+	- Spent some time on debugging the sync problems of
+		ImageStreamReaderActor, as the following simple model 
+		
+		[PN director]          [ImageStreamReaderActor]
+		
+		exposes the problem when: run/stop ultiple times; or run-pause-stop.
+		
+		Setting ImageStreamReaderActor's initialize() method synchronized fixes a
+		problem when stopping this actor when initialize() is in progress.
+		
+		Remove synchronized and notifyAll from reset().
+		
+		OK: it seems ImageStreamReaderActor behaves much better now ;-)
+		
+
+09/09/06
+	- New package edu.ucdavis.geostreams.ni: trying to separate general handling from
+	  ptolemy model dispatch.
+	- more tests with file channels (to have better interruptability)
+	- Using BlockingQueue (instead of SyncFifo)
+	
+	==> In summary, better approach but still having synchronization problems...
+	
+	TODO: RemoteClient: revisit and enable use of channels (useChannel)
+	
+	
+08/29/06
+	Adding some Thread.currentThread().interrupt() ...
+	
+	
+08/02/06
+	Just reviewing what I have so far:
+	
+	Running the models (server & client):
+		
+		runvergil workflows/Reader1.xml       # server model
+		runvergil workflows/NetReader1l.xml    # client model
+
+	Almost everything seems to work fine, but:
+		- if I click "Status" (or "streams") multiple times while a stream is 
+		being visualized, I easily get a java.io.StreamCorruptedException on the
+		client side; I guess it's because of a lack of synchromization in the 
+		data that is being sent back from the server: sending a response to 
+		"status" while a row of pixels is currently being transmitted (this is 
+		my best guess now -- need to look into that).
+		
+	- - o - - 
+	
+	
+		
+		
+06/26/06
+	- Added stop() methods to StreamServerActor and ImageStreamReaderActor to, directly or
+	  indirectly, interrupt associated threads: seems to fix the problem when clicking 
+	  vergil's stop button and the director (PN) went to an infinite loop waiting for
+	  active actors to stop. -- but still some problems ;-(  
+	  .. I'll have to defer on being able to stop/reexecute the model.
+	  
+	- So, now:
+		- New operation "Clear" button on viewer.
+		- Idea: for demos I'm mostly reading data from disk: don't stop reading at the end
+		  of the file; instead, re-start at the beggining and loop forever.
+		
+	  
+06/25/06
+	- improving thread synchronization: DispathRemoteClient, NetInterfaceServer...
+	
+06/20/06
+	Migrating to windows:
+		Sources adjusted to deal with files:
+		- build.xml, build.properties
+		- ImageStreams.java
+		- ServerConnection.java
+		
+		Using PTII 5.0.1 (binaries). Had to manually update basicActorLibrary.xml
+		inside the ptsupport.jar.
+		
+		Using retrotranslator 1.0.5
+		
+		New setenv.bat to set some vars in windows.
+		See BUILD.txt for quick instructions.
+		
+		OK: all is now working as in my linux system!
+		
+		
+06/19/06
+	Resuming work on the ptolemy actors.
+	For now, some doc/comments update to remember things ;-)
+	
+	- webmodel.txt  Updated with some of the current class names.
+	
+	- BUILD.txt with basic steps to set up the whole thing and run
+	  some tests.
+	  
+	Starting improvements for synchronization for client dispatching..
+	Idea: Two thread for dispatching a client:
+		reading thread
+		writing thread
+	...
+	
+	
+	
+* * *	
+	
+03/30/06
+	New ActorUtilities.getIconText(Map<String,Object> props) for some
+	more flexibility.
+	Icon text is now read from a fixed location relative to the viewer
+	directory: TODO: load as a resource via classloader
+	
+02/14/06
+	Renamings:  (in package edu.ucdavis.geostreams.actor.we)
+		WebEnablerActor  --> NetInterfaceActor
+		WebEnablerServer --> NetInterfaceServer
+		
+	New actors:  (in package edu.ucdavis.geostreams.actor)
+		DelayActor
+		ThresholdActor
+		RegionOfInterestActor
+	with no actual implementation yet.
+	
+		
+02/13/06
+	- Just updated the external ptolemy/configs/basicActorLibrary.xml on my
+	machine to reflect the recent package renaming:
+	 <input source="edu/ucdavis/geostreams/actor/geostreamsactors.xml"/>
+	
+	
+02/09/06
+	- Some package renamings:
+		edu.ucdavis.geostreams.kepler       --> edu.ucdavis.geostreams.actor
+		edu.ucdavis.geostreams.kepler.olswf --> edu.ucdavis.geostreams.actor.we
+	The change reflects the fact that these actors are not strictly attached
+	to Kepler; in fact, I'm using Ptolemy as the runtime environment.
+	
+	- Updates done on various places: build.{properties,xml}
+	
+02/06/06
+	- WEA, SSA: Icon update according to change in (part of the) state
+	
+02/05/06
+	Image streams no longer work on a single working image, but always 
+	create a new image in nextImage(). This avoid potential synchronization
+	problems. In particular, in the context of Ptolemy models.
+	- ImageStreamViewerActor updated according to the new connection API;
+	it's now working again, but requires adjustments in status information.
+
+	Resuming development of WebEnabler/StreamServer actors.
+	(note: Server renamed to WebEnablerServer.)
+	Documentation in webmodel.txt
+	
+	
+02/04/06
+	- ImageStreamReaderActor: adjustments to proper synchronization 
+	under various Ptolemy directors; I made several tests (running,
+	pausing, resuming, stopping) with the same simple workflow:
+		[ImageStreamReaderActor]--->[Display]
+	under both SDF and PN. ==> OK
+	I defined a SyncFifo object that is used for synchronizing the image 
+	production-consumption threads: See newImage(IImage) and fire() 
+	methods.
+	Also, defined an ExecutionListener to detect posible external failures,
+	e.g. director is removed while the model is executing.
+	
+02/01/06
+	- better event dispatching.
+	
+	- ServerConnection: openStream() renamed to openChannel().
+	
+	- interface IImageStream removed.
+	
+	- first touches to ImageStreamReaderActor, which is now based on
+	  wait/notify mechanism as there is no pulling way to obtain
+	  images from the server, but rather an observer mechanism.
+	  No tests yet!
+	
+01/31/06
+	- Big refactoring so dispatching is based on notification to
+	connection observers. Some details still to be tuned.
+	
+01/30/06
+	- class ViewerStreamInfo removed.
+	- new FrameStatus to be under connection management
+	- allowing connection to a local filesystem (as a backup for demo
+	purposes in case there is no way to connect to an actual server).
+	
+	- Classes in package ...connection moved to package ...image.
+	  This is a preparation for refactoring: clients are to register as
+	  observers to get notified about new data coming from the open streams
+	  in a unified way.
+	  
+	
+01/28/06
+	- GUI improvements
+	- Refactoring
+		- ChannelDefs now only given by ServerConnection
+		- Channel renamed to ChannelStatus
+		- An IImageStream is only associated to one channel (note that the
+		  server is still able to send images on multiple channels).
+	
+	- pending: Multiple ROIs on the same channel?
+	
+01/26/06 2.0.9
+	- some refactoring and GUI improvements
+	
+01/19/06 2.0.9
+	- starting to use eclipse: cvs, significant cleanup and
+	  builder configured to run the standard build.xml.
+
+01/18/06 2.0.9
+	- control of saved image loading.
+	- including retrotranslator runtime jar.
+	
+	- significant refactoring.
+	
+01/17/06 starting 2.0.9
+	- Doing some tests to the retrotranslator tool so 1.5 features
+	  can be used and still be able to run under 1.4.
+	  See usage of List<ViewerStreamInfo> in
+	  GeostreamsViewer. Note: The retro verification fails with a 
+	  warning regarding GeostreamsViewer$6$1$1 but it seems the 
+	  generated classes still run fine under 1.4 (retro bug?).
+	  
+	  Also note that I'm just deploying the geostreams4j14.jar, 
+	  not the retrotranslator runtimes, and still the applet runs OK
+	  under a 1.4 java runtime. This is because I'm not using any
+	  elements @since 1.5 yet.
+	
+01/16/06 starting 2.0.9
+	- GeostreamsViewer.showOverview(): new method that opens the
+	  Overview window for the user to select a ROI and a band.
+	  ROI selection is already implemented (including display of
+	  corners of ROI in reference space coordinates). 
+	  PENDING: complete dispatch.
+	  
+01/15/06 starting 2.0.9
+	- Now Using an xml spec for streams and vector data:
+	  See page/geostreams.xml
+	- New classes in package edu.ucdavis.geostreams.connection:
+		GeoStreamsInfo, StreamInfo, VectorInfo   
+	- class _.viewer.Layers removed (VectorInfo used instead).
+
+	
+10/07/05 2.0.8
+	- simulation delay added to developer options (for demo purposes)
+	
+08/15/05 2.0.8
+	- ImagePanel: BasicStroke(3f) disabled (I already took the necessary
+	  scrennshots :-) ). A future version will allow the user to 
+	  specify some general properties for drawing things. 
+	
+08/10/05 2.0.8
+	- ImagePanel: BasicStroke(3f) to make thicker lines in rectangles
+	  (which also helps having good reduced screenshots)
+	  
+08/08/05 2.0.8
+	- Minor adjustments to standalone program to look like the applet,
+	  i.e., with no developer and save GUI components (mainly to ease
+	  the capture of some screenshots).
+	  
+	- new --bg-width option to test bigger background image in viewer.
+	
+08/06/05 2.0.8
+	- ImageStreamViewer: continuing with refactoring
+	
+08/06/05 2.0.7
+	- geolines.txt: only with main lands.
+	  A futures version will include a more general mechanism to provide
+	  different GIS layers.
+	- frame tooltip includes rectangle information
+	- geolines shown by default
+	
+08/05/05 2.0.7
+	- Better status messages with background colors
+	- Timeout in developer options
+	
+08/04/05 2.0.7
+	- GeostreamsViewer._openStream improved:
+		- it checks for OutOfMemoryError under more possible cases
+		  and buttons are updated properly.
+		- tab created is immediately set the selected one.
+		
+	- GeostreamsViewer.includeDevControls: to include developer controls:
+		loadBackgroundCheck: indicate to load the background image 
+		when opening new streams.
+	- GeostreamsViewer.developerTests flag
+		
+08/03/05 2.0.7
+	- ImageStreamViewer: refactoring to decouple reading from 
+	  IImageStream in a thread. This is now offered as an optional
+	  service:  getStreamReader() -> IStreamReader
+	  The idea is that ImageStreamViewer works mainly through
+	  addImage(IImage) rather than on IImageStream, but getStreamReader()
+	  is offered as a convenience (used now by GeostreamsViewer).
+	  Now, I can continue on updating ImageStreamViewerActor, which
+	  will actually interact with ImageStreamViewer by calling
+	  addImage(IImage).
+
+07/30/05 2.0.6
+	- OutOfMemoryError checked.
+	
+07/29/05 2.0.6
+	- Added --auto-save-frames to standalone viewer.
+	- GeostreamsViewer._closeStream: streamInfo runtime attribute 
+	  updated in case the same stream is re-open.
+	
+07/28/05 2.0.6
+	- better status messages depending on termination of open stream
+	  by user or remote server.
+	  
+07/27/05 2.0.6
+	- Binary transmission tests OK.
+	
+	- GeostreamsViewer:
+		- Backgroung image is now loaded only once for the same stream.
+		  This fixex bug #200101
+		- Geolines is now loaded only once and shared between streams.
+		
+	- ImagePanel.paint: removed condition _channel.chanelDef != null
+	  to actually draw current state of image. This allows the
+	  background to be immediately displayed while the stream connection
+	  starts getting rows. This fulfills feature request #200107
+	  
+	- Also a starting line indicator per frame is drawn.
+	
+07/26/05 2.0.6
+	- ImageStreams: for imgStreamFile containing "channels=", it now
+	  also checks for "format=X" to decide which format to use.
+	  This format is the numerical value of one of the enumeration
+	  elements in ImgStream.h
+	  
+	- BinaryImageStream/AsciiImageStream: now reading sample_size in
+	  channel definition.
+	  
+	- starting to test binary format in transmission
+	  
+07/24/05 2.0.5
+	- Applet dispatch simplified: only embedded in applet container
+	
+	- page/geolines.txt updated with shorelines from the GSHHS dataset.
+	  New parameters in ELUG conversion thanks to fixes in gvar module.
+	  
+	
+07/21/05 2.0.5
+	- StreamInfo including URL of latest image used as background
+	  when starting visualization of a stream.
+	  
+	- Save action included when the viewer is launched as a standalone
+	  application. This allows one to save the image in each stream.
+	  The name for the file is taken from the URL of the saved attribute
+	  in StreamInfo. For example, if the URL for the saved image is
+	  http://geostream.cs.ucdavis.edu/~carueda/applet/saved_0.jpg,
+	  then, saved_0.jpg is used as the name of the local file (in the
+	  current directory) to be saved.
+	  
+	- Saved images for all 5 channels saved a 2:30pm today with last
+	  full disk.
+	  
+	- ImageStreamViewer: setZoom: Improved relocation of viewport in
+	  zoom in/out when the slider is used.
+	- Shift-MouseWheel can also be used to zoom in/out.
+	  
+07/20/05 2.0.5
+	- Check for last row in frame takes into account the vertical 
+	  pixel size associated to corresponding channel.
+
+07/19/05 2.0.5
+	- codebase included in applet tag: this fixes the weird behavior
+	  when the applet was launched from within the geostreams twiki.
+	  
+	- Geolines for checkbox while we fix the misplacement error.
+	  
+07/18/05 2.0.5
+	More tests on lon/lat-->pix/lin displacement 
+
+07/16/05  starting 2.0.5
+	- API changes in IImageStream:
+		Removed: createImage() removed
+		New: IImage nextImage() instead of: boolean nextImage(IImage).
+	  IImageStream.nextImage() always returns the same object with
+	  newly data from the stream; returns null when there are no more
+	  data.
+	- ImagePanel._createImage reallocates pixel array only when image
+	  size increases--this should improve performance.
+	  
+	- geolines: pixel,line,lon,lat : int,int,double,double
+	
+	- etc/elug.gshhs.cpp: a program to convert shoreline datasets
+	  from GSHHS format to my ad hoc vector line format:
+	  	cd etc/
+		make
+		./elug.gshhs GSHHS/gshhs_c.b 2>/dev/null > ../page/shorelines.txt
+	  however, I'm getting a ~35-degree offset .. (?)
+		
+07/15/05  starting 2.0.5
+	- Using geostreams.cs instead of geostream.cs in some test programs.
+	- Testing applet when launched from twiki page: we are getting
+	  a weird browser behavior..
+	
+07/14/05  starting 2.0.5
+	- A stream can now be re-opened in the same tab after being
+	  interrupted of closed.
+	- Only first frame border was painted: fixed.
+	- finished() called when thread ends running, so buttons get
+	  updated.
+	- scan line position updated only if new row is greater.
+	- a progress bar included to show activity status.
+	
+07/13/05  starting 2.0.5   
+	- better synchronization with EvenQueue.invokeLater
+	- buttons enabled according to current state
+	- new Layers class which currently can load line vector data:
+	  this is used to display some meridians and parallels.
+	  etc/geolines.sh generates page/geolines.txt
+	- new parameter/argument "geolines" to specify the file containing
+	  the geographic lines to be displayed.
+	
+07/12/05  starting 2.0.5
+	- Tabbed stream visualization completed.
+	- Using a JSlider to zooming in and out
+	- ImagePanel manages only one channel again.
+	- ImageStreamViewer is the main component in each tab.
+	- GeostreamsViewer is now the main GUI element which dispatches
+	  the list of available streams and instantiates ImageStreamViewer.
+	- toolbar with some icons from sun.
+	- new viewer/Main.java for standalone application.
+
+07/12/05  Version 2.0.4
+	- Module renamed from src/applet to src/viewer in CVS repository.
+	- Module tagged 2_0_4 before starting changes to use tabs for
+	  stream display.
+
+07/11/05
+	- Applet adjusted and running.
+	- Zooming in/out by Shift-dragging mouse
+	- New Channel class in viewer package to keep info about
+	  open channels
+	
+07/09/05
+	Multiple channel visualization: ImagePanel now handles multiple
+	CanvasImage instances, one for each channel. 
+	
+	Scrolling by dragging the mouse.
+	
+07/08/05
+	Now processing size in x and y to display channels with lower
+	resolution that VIS.
+	
+	BinaryImageStream: completing implementation.
+	
+	Sample size now managed as a channel attribute.
+	
+07/06/05
+	Viewer now showing: rectangle of each incoming frame; line for
+	current row
+	
+07/05/05
+	New classes for new scheme on image streams according to
+	C++ code in imgstr module
+
+06/30/05
+	I started implementing a first approach to the new module:
+	OLSWF: Online Scientific Workflows
+	  package edu.ucdavis.geostreams.kepler.olswf:
+		WebEnablerActor 
+		Server
+		StreamServerActor
+		RemoteClient
+		Client
+
+05/04/05  Version 2.0.4
+	New ActorUtilities, now providing a common way to get the
+	icons for the actors.
+	
+05/02/05  Version 2.0.3
+	New VERSION and mksrcdist.sh to make source distribution.
+	Note that although the module is called 'applet', it is actually
+	designed to support also standalone apps and kepler-based actors.
+	The source distribution is called with prefix geostreams-viewer
+	(and not geostreams-applet) for this reason.
+	
+05/02/05  Version 2.0beta2
+	Kepler location updated.
+	New kepler.txt that describes how to deploy the geostreams actors
+	in kepler.
+	New mksrcdist.sh to make source distribution.
+	
+04/21/05  Version 2.0beta1
+	New CanvasImage with code from ImagePanel that rescales
+	reference images to a displayable image (the canvas).
+	
+	Reference space is now given by a Rectangle instead of
+	Dimension. Symbol signatures changed accordingly, for example:
+		IImageStream.getReferenceSpace() -> Rectangle
+	
+04/20/05  Version 2.0beta1
+	Adjustments in build.properties and build.xml.
+	New target install-actors to copy the generated jars to
+	Kepler jar directory.
+	
+04/19/05  Version 2.0beta1
+	Code cleanup.
+	Saved image is now displayed as in the previous version.
+	New ...viewer.GeostreamsViewer with its own main() entry point
+	as a standalone application, and also with support for the applet 
+	...applet.GeostreamsApplet.
+	build.xml now includes a 'kepler' target; new build.properties.
+	Kepler code adjusted according to last changes in supporting classes.
+	ImageStreamViewerActor: now also displays saved image specified in
+	a parameter.
+	
+	
+03/25/05  Version 2.0beta
+	New ImagePanel.refresh(): clients should call this method
+	update the display of new contents.
+	Now a rectangle is drawn as a frame for each aggregation
+	of contiguous images.
+	Rectangles are now drawn on the final graphics component
+	(and not on the background image). This gives a better 
+	rendering as there are no more artifacts due to 
+	downscaling.
+	
+03/24/05  Version 2.0beta
+	Viewer reimplementation completed. Now, multiple streams
+	can be visualized. The applet now expects a parameter with
+	a URL containing the list of available image streams. This
+	is done now through streams.php. The Open button shows a
+	popup menu with the list of names of the available streams.
+	The Close button allows to interrupt one of the started
+	streams. I have updated the documentation and renamed some
+	symbols. Also made the first cvs commit of this refactoring.
+
+03/19/05
+	This new applet/ subdirectory will contain the Java code
+	for the geostream visualizer. Basically, this will be a
+	refactoring of the Java code that has been maintained so
+	far under gvar/mngstream/.
+	

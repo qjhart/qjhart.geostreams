@@ -1,0 +1,13 @@
+_generated/*
+_generated
+*.bin
+.externalToolBuilders
+.settings
+DISTDIR
+testapplet
+toolbarButtonGraphics
+treeIcons
+*.eps
+*.pdf
+tmp
+_gs_kepler

@@ -1,0 +1,106 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="GISMS-library" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.1.devel">
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={0, 6, 1024, 756}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[988, 627]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.4933731566175">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{319.7947499999999, 213.1462733004386}">
+    </property>
+    <entity name="CimisReader" class="geostreams.ptolemy.actor.CimisReaderActor">
+        <doc>Reads CIMIS data</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[75.0, 115.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[475.0, 115.0]">
+        </property>
+    </entity>
+    <entity name="StreamReader" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[75.0, 50.0]">
+        </property>
+    </entity>
+    <entity name="SpatialRestriction" class="geostreams.ptolemy.actor.StreamRegionOfInterestActor">
+        <doc>RegionOfInterest</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[205.0, 50.0]">
+        </property>
+    </entity>
+    <entity name="SpatialExtension" class="geostreams.ptolemy.actor.StreamExtensionActor">
+        <doc>SpatialExtension</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[335.0, 50.0]">
+        </property>
+    </entity>
+    <entity name="Threshold" class="geostreams.ptolemy.actor.StreamThresholdActor">
+        <doc>Threshold</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{335.0, 115.0}">
+        </property>
+    </entity>
+    <entity name="Addition" class="geostreams.ptolemy.actor.StreamAdditionActor">
+        <doc>Addition</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[205.0, 185.0]">
+        </property>
+    </entity>
+    <entity name="AbsoluteValue" class="geostreams.ptolemy.actor.StreamAbsoluteValueActor">
+        <doc>AbsoluteValue</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[335.0, 185.0]">
+        </property>
+    </entity>
+    <entity name="Random" class="geostreams.ptolemy.actor.StreamRandomActor">
+        <doc>Random</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[65.0, 185.0]">
+        </property>
+    </entity>
+    <entity name="Sine" class="geostreams.ptolemy.actor.StreamSineActor">
+        <doc>Sine</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[65.0, 260.0]">
+        </property>
+    </entity>
+    <entity name="Delay" class="geostreams.ptolemy.actor.StreamDelayActor">
+        <doc>Delay</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[205.0, 115.0]">
+        </property>
+        <port name="bufferOutput" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="SOUTH">
+            </property>
+        </port>
+    </entity>
+    <entity name="L2G" class="geostreams.ptolemy.actor.LatLonToGoesProjectionActor">
+        <doc>LatLonToGoesProjectionActor</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{205.0, 260.0}">
+        </property>
+    </entity>
+    <entity name="GoesI2T" class="geostreams.ptolemy.actor.GoesInfraredToTemperatureActor">
+        <doc>Converts GOES infrared to temperature</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[335.0, 260.0]">
+        </property>
+    </entity>
+    <entity name="NetInterface" class="geostreams.ptolemy.NetInterface">
+        <doc>Net-enables a workflow</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[480.0, 255.0]">
+        </property>
+    </entity>
+    <entity name="SpatialTransform" class="geostreams.ptolemy.actor.StreamSpatialTransformActor">
+        <doc>Reprojection</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[465.0, 50.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+        </property>
+    </entity>
+    <entity name="Viz3D" class="geostreams.ptolemy.actor.Viz3DActor">
+        <doc>Viz3D</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[480.0, 180.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+        </property>
+    </entity>
+</entity>

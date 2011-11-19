@@ -1,0 +1,196 @@
+#! /usr/bin/perl -w
+
+package GeoStr::DBI;
+use base 'Class::DBI';
+
+package GeoStr::User;
+use base 'GeoStr::DBI';
+GeoStr::User->table('user');
+GeoStr::User->columns(All => qw/userid name/);
+GeoStr::User->has_many(queries => 'GeoStr::Q');
+
+# Now I have two queries?
+package GeoStr::Q;
+use base 'GeoStr::DBI';
+GeoStr::Q->table('query');
+GeoStr::Q->columns(All => qw/queryid user w s e n width height channel/);
+GeoStr::Q->has_a(user => 'GeoStr::User');
+
+
+use POSIX (qw/ceil floor/);
+use GeoStr;
+
+use Getopt::Long qw[:config prefix_pattern=(--|-|) ];
+use Pod::Usage;
+
+
+my %opt = 
+  (
+   'dbi'=>'dbi:SQLite:dbname=/home/quinn/projects/geostreams/doc/hart06gis/test/goes-plan.sql',
+   'plan'=>'plan',
+   'averaging'=>undef,
+   'source'=>'$(MAPSET)',
+   'user'=>1,
+   'process_layer'=>'ch2',
+   );
+
+GetOptions(\%opt,'help|?',"man",'dbi=s','plan=s','source=s',
+	   'averaging=s','user=i','process_layer=s') ||
+    pod2usage(2);
+
+pod2usage("averaging not each|share") unless ($opt{averaging} eq 'each' or $opt{averaging} eq 'share' or $opt{averaging} eq 'foo');
+
+my $dir=qx'eval `g.gisenv`; echo $GISDBASE/$LOCATION_NAME/$MAPSET/etc';
+chomp $dir;
+
+my $layers=
+  [
+   GeoStr::Node::Layer->new
+   (name=>'ch1',
+    mapset=>$opt{source},
+    resolution=>1,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'ch2',
+    mapset=>$opt{source},
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'ch3',
+    mapset=>$opt{source},
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'ch4',
+    mapset=>$opt{source},
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'ch5',
+    mapset=>$opt{source},
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'ndvi',
+    mapset=>$opt{source},
+    source=>[qw/ch1 ch2/],
+    eq=>'100.0*float(B2-B1)/(B2+B1)',
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'p1',
+    mapset=>$opt{source},
+    source=>[qw/ch1/],
+    eq=>'min($$$$(goes.previous.mapsets --quote --exists days=14 rast=B1))',
+    resolution=>1,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'p2',
+    mapset=>$opt{source},
+    source=>[qw/ch2/],
+    eq=>'min($$$$(goes.previous.mapsets --quote --exists days=14 rast=B1))',
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'p4',
+    mapset=>$opt{source},
+    source=>[qw/ch4/],
+    eq=>'min($$$$(goes.previous.mapsets --quote --exists days=14 rast=B1))',
+    resolution=>4,
+   ),
+   GeoStr::Node::Layer->new
+   (name=>'p5',
+    mapset=>$opt{source},
+    source=>[qw/ch5/],
+    eq=>'max($$$$(goes.previous.mapsets --quote --exists days=14 rast=B1))',
+    resolution=>4,
+   ),
+   ];
+
+my $plan=GeoStr::Plan->new(
+			   layers=>$layers,
+			   name=>$opt{plan},
+			   %opt,
+			   );
+
+# Setup the database
+GeoStr::DBI->connection($opt{dbi});
+my $user=GeoStr::User->retrieve($opt{user});
+
+@cnt=(0,4,19,49,99);
+foreach my $cnt (0..$cnt[$opt{user}]) {
+    my %q;
+    $cnt=sprintf "%.3d",$cnt;
+    my $qname=`g.mlist type=region mapset=queries pattern="??_$cnt"`;
+    chomp $qname;
+    my @reg=`g.region region=$qname\@queries -g`;
+    grep {chomp; ($k,$v)=split('='); $q{$k}=$v;}  @reg;
+
+    my $box = new GeoStr::Box [$q{w},$q{s},$q{e},$q{n}];
+    my $query = new GeoStr::Query
+	(
+#     layer=>'ch'.$q->channel,
+	 layer=>'ch1',
+	 id=>$qname,
+	 box=>$box,
+	 width=>int(($q{e}-$q{w})/$q{ewres}),
+	 height=>int(($q{n}-$q{s})/$q{nsres}),
+	 );
+
+    # for other send parameters, we'll add in a hash {} or more
+    # query parameters
+    $plan->add_query($query);
+}
+
+print $plan->execute;
+
+1;
+__END__
+
+=head1 NAME
+	
+goes.make-plan
+
+=head1 SYNOPSIS
+
+goes.make-plan [dbi=string] [plan=name] averaging=(each|share)
+
+ Options:
+   --help               brief help message
+   --man                full documentation
+   source_mapset        Where source data is located
+   dbi=dbi            DBI connection string for query database
+   plan=name                     The name of the plan
+   averaging=each|share     How to Average
+
+goes.make-plan will read query database, and make an execution plan
+based on those queries.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<dbi>
+
+DBI connection string for database.
+
+=item B<--averaging>
+
+The type of averging to use.
+
+=item B<-help>
+
+Print a brief help message and exits.
+
+=item B<-man>
+
+Prints the manual page and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<geostr> will eventually act as a client and server in the accessing
+GOES geostreams.
+
+=cut

@@ -1,0 +1,381 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="cimisgoes-regression1" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.1.devel">
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={96, 6, 876, 756}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[837, 622]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.3207100591716">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{278.5, 147.3835125448029}">
+    </property>
+    <property name="SDF Director" class="ptolemy.domains.sdf.kernel.SDFDirector">
+        <property name="iterations" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[25.0, -30.0]">
+        </property>
+    </property>
+    <property name="Hour" class="ptolemy.data.expr.Parameter" value="&quot;1000&quot;">
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:420:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.data.expr.Parameter">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1184:1">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Parameter">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#Parameter">
+        </property>
+        <property name="_hideName" class="ptolemy.kernel.util.SingletonAttribute">
+        </property>
+        <property name="_icon" class="ptolemy.vergil.icon.ValueIcon">
+            <property name="_color" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+            </property>
+        </property>
+        <property name="_smallIconDescription" class="ptolemy.kernel.util.SingletonConfigurableAttribute">
+            <configure>
+      <svg>
+        <text x="20" style="font-size:14; font-family:SansSerif; fill:blue" y="20">-P-</text>
+      </svg>
+    </configure>
+        </property>
+        <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[185.0, -10.0]">
+        </property>
+    </property>
+    <property name="Date" class="ptolemy.data.expr.Parameter" value="&quot;2007-07-30&quot;">
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:420:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.data.expr.Parameter">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1184:1">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Parameter">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#Parameter">
+        </property>
+        <property name="_hideName" class="ptolemy.kernel.util.SingletonAttribute">
+        </property>
+        <property name="_icon" class="ptolemy.vergil.icon.ValueIcon">
+            <property name="_color" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+            </property>
+        </property>
+        <property name="_smallIconDescription" class="ptolemy.kernel.util.SingletonConfigurableAttribute">
+            <configure>
+      <svg>
+        <text x="20" style="font-size:14; font-family:SansSerif; fill:blue" y="20">-P-</text>
+      </svg>
+    </configure>
+        </property>
+        <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[185.0, -35.0]">
+        </property>
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+        <property name="_hideAllParameters" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="12">
+        </property>
+        <property name="textColor" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+        </property>
+        <property name="fontFamily" class="ptolemy.data.expr.StringParameter" value="SansSerif">
+        </property>
+        <property name="bold" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="italic" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="GOES-CIMIS point data regression.&#10;Given a date and an hour, this workflow gets temperature point data from &#10;two sources: the CIMIS stations and a GOES infrared channel. The GOES&#10;infrared data is converted to temperature (I2T actor). Only locations where &#10;data is available from the two sources are considered for the regression &#10;analysis. This intersection is done by the Inters actor. &#10;">
+            <property name="_style" class="ptolemy.actor.gui.style.TextStyle">
+                <property name="height" class="ptolemy.data.expr.Parameter" value="20">
+                </property>
+                <property name="width" class="ptolemy.data.expr.Parameter" value="80">
+                </property>
+            </property>
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Edward A. Lee</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Use the Annotation attribute to annotate a workflow. Double-click the attribute to customize the content, font size, color, and basic formatting (bold and italics).</configure></property>
+<property name="prop:fontFamily" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The font face. Select a font from the drop-down menu. The default is "SansSerif".</configure></property>
+<property name="prop:italic" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Select to indicate that the type should be italics. By default, type will not be italicized.</configure></property>
+<property name="prop:bold" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Select to indicate that the type should be bold. By default, type will not be bold.</configure></property>
+<property name="prop:textColor" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The font color. Specify a string representing an array of four elements: red, green, blue, and alpha, where alpha is transparency. The default is an opaque black, {0.0, 0.0, 0.0, 1.0}</configure></property>
+<property name="prop:textSize" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The font size. Select an integer from the drop-down menu or specify a new size by typing it directly into the value field.  The default is 14.</configure></property>
+<property name="prop:text" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The text of the annotation.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:436:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.vergil.kernel.attributes.TextAttribute">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1199:1">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#DocumentationActor">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#WorkflowDocumentation">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[30.0, 195.0]">
+        </property>
+    </property>
+    <entity name="GoesPointReader" class="geostreams.ptolemy.actor.CimisGoesPointReaderActor">
+        <property name="dateParam" class="ptolemy.data.expr.StringParameter" value="$Date">
+        </property>
+        <property name="hourParam" class="ptolemy.data.expr.StringParameter" value="$Hour">
+        </property>
+        <property name="fileParam" class="ptolemy.data.expr.FileParameter" value="">
+        </property>
+        <doc>Reads GOES point data</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[70.0, 75.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="GoesI2T" class="geostreams.ptolemy.actor.GoesInfraredToTemperatureActor">
+        <doc>Converts GOES infrared to temperature</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[140.0, 95.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="CimisReader" class="geostreams.ptolemy.actor.CimisReaderActor">
+        <property name="dateParam" class="ptolemy.data.expr.StringParameter" value="$Date">
+        </property>
+        <property name="hourParam" class="ptolemy.data.expr.StringParameter" value="$Hour">
+        </property>
+        <doc>Reads CIMIS data</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[70.0, 150.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="ArrayIntersect" class="geostreams.ptolemy.actor.ArrayIntersectActor">
+        <property name="omitParam" class="ptolemy.data.expr.StringParameter" value="">
+        </property>
+        <doc>ArrayIntersectActor</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[245.0, 130.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Regression" class="org.ecoinformatics.seek.R.RExpression">
+        <property name="expression" class="ptolemy.kernel.util.StringAttribute" value="eps &lt;- function(file, onefile=FALSE, horizontal=FALSE, paper=&quot;special&quot;, ...)&#10;  postscript(file=file, onefile=onefile, horizontal=horizontal, paper=paper, ...)&#10;&#10;&#10;if (is.character(Dependent)) {&#10;	Dependent &lt;- factor(Dependent)&#10;}&#10;&#10;model &lt;- lm(Dependent ~ Independent)&#10;&#10;R2 &lt;- summary(model)$r.squared&#10;&#10;plot(Independent, Dependent, xlab=&quot;GOES&quot;, ylab=&quot;CIMIS&quot;, asp=1)&#10;&#10;if (is.numeric(Dependent)) {&#10;	abline(model)&#10;	intercept &lt;- as.numeric(model$coefficient[1])&#10;	slope &lt;- as.numeric(model$coefficient[2])&#10;	title(main=paste(&quot;R^2 =&quot;, R2), sub=paste(&quot;b =&quot;, intercept, &quot;  m =&quot;, slope))&#10;	intercept&#10;	slope&#10;} &#10;if (is.character(Dependent)) {&#10;	ano &lt;- anova(model)&#10;	ano&#10;} &#10;&#10;eps(file=&quot;plot.eps&quot;, width=5, height=5)&#10;dev.off()&#10;&#10;">
+            <property name="R Expression" class="ptolemy.actor.gui.style.TextStyle">
+                <property name="height" class="ptolemy.data.expr.Parameter" value="10">
+                </property>
+                <property name="width" class="ptolemy.data.expr.Parameter" value="30">
+                </property>
+            </property>
+        </property>
+        <property name="Rcwd" class="ptolemy.data.expr.StringParameter" value="/home/carueda/workspace/viewer/kepler-output/">
+        </property>
+        <property name="save_nosave" class="ptolemy.data.expr.StringParameter" value="--save">
+        </property>
+        <property name="graphicsFormat" class="ptolemy.data.expr.StringParameter" value="pdf">
+        </property>
+        <property name="graphicsOutput" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="displayGraphicsOutput" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="numXPixels" class="ptolemy.data.expr.StringParameter" value="480">
+        </property>
+        <property name="numYPixels" class="ptolemy.data.expr.StringParameter" value="480">
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Josh Madin</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure><p>The Regression actor uses R to run a variance or linear regression analysis. The actor accepts an independent and a dependent variable. If the independent variable is categorical, the actor uses R to run a variance analysis (or a t-test if the variable has only 2 categories). If the independent variable is continuous, a linear regression is run. The actor outputs both a graphical and textual representation of the analysis.</p>
+
+<p>The R application must be installed on the local system to use this actor. R is a language and environment for statistical computing and graphics. For more information about R, see http://www.r-project.org/.</p>
+
+<p>The actor performs the analysis and saves the results to the Kepler working directory. To view the results, connect an ImageJ actor to the graphicsFileName output port and/or a Display actor to the intercept and slope ports. </p>
+</configure></property>
+<property name="port:slope" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts the slope of the generated result.</configure></property>
+<property name="port:graphicsFileName" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts the file name of the generated graph of the results.</configure></property>
+<property name="port:output" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts a copy of the text output that R generates.  As the actor communicates with R to run the R function or script, the output port sends back the response (i.e., the values and statistical outputs).</configure></property>
+<property name="port:Dependent" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The dependent variable (continuous).</configure></property>
+<property name="port:intercept" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts the y-intercept of the generated result.</configure></property>
+<property name="port:Independent" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The independent variable (continuous or categorical).</configure></property>
+<property name="prop:Rcwd" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The 'R' working directory (the home directory by default). </configure></property>
+<property name="prop:displayGraphicsOutput" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Select to display the plot once the actor has generated it.</configure></property>
+<property name="prop:graphicsFormat" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The graphics output format. Currently the actor supports either  *.pdf or  *.png.</configure></property>
+<property name="prop:numXPixels" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The width of the output graphic in pixels.</configure></property>
+<property name="prop:numYPixels" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The height of the output graphic in pixels.</configure></property>
+<property name="prop:expression" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The expression that is evaluated to produce the output.</configure></property>
+<property name="prop:graphicsOutput" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Specify whether or not to create a graphics output port. By default, the actor will create a graphics output port.</configure></property>
+<property name="prop:save_nosave" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Specify whether or not to save the R workspace when R is closed; set to '--save' to retrieve the workspace later in a workflow in another R-actor.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:488:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="org.ecoinformatics.seek.R.RExpression">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="null">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#MathOperationActor">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#StatisticalOperation">
+        </property>
+        <property name="semanticType222" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:5:1#RegressionAnalysis">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[365.0, 110.0]">
+        </property>
+        <port name="Independent" class="ptolemy.actor.TypedIOPort">
+            <property name="input"/>
+        </port>
+        <port name="Dependent" class="ptolemy.actor.TypedIOPort">
+            <property name="input"/>
+        </port>
+        <port name="intercept" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+        </port>
+        <port name="slope" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+        </port>
+    </entity>
+    <entity name="ImageJ" class="util.ImageJActor">
+        <property name="fileOrURL" class="ptolemy.data.expr.FileParameter" value="/home/carueda/workspace/viewer/kepler-output/carueda1.pdf">
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Dan higgins</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure><p>The ImageJ actor reads an image file name and opens and displays the image along with a toolbar of image-processing options, which can be used to process the image.</p>
+
+<p>The actor uses the ImageJ application to open and work with images. ImageJ can be used to display and process a wide variety of images (tiffs, gifs, jpegs, etc.) For more information about ImageJ, see http://rsb.info.nih.gov/ij/.</p></configure></property>
+<property name="port:input" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>A multiport that accepts the path of an image file (a tiff, gif, jpeg, or any other format supported by ImageJ). The file name can also be input through the fileOrURL parameter.</configure></property>
+<property name="prop:fileOrURL" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The file name or URL of an image to process (a tiff, gif, jpeg, or any other format supported by ImageJ). The file name may also be input through the input port.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:251:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="util.ImageJActor">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1077:1">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#ImageManipulationActor">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#GraphicalOutput">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[470.0, 105.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Array Plotter" class="ptolemy.actor.lib.gui.ArrayPlotter">
+        <property name="fillOnWrapup" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={319, 96, 701, 352}, maximized=false}">
+        </property>
+        <property name="_plotSize" class="ptolemy.actor.gui.SizeAttribute" value="[691, 300]">
+        </property>
+        <property name="startingDataset" class="ptolemy.data.expr.Parameter" value="0">
+        </property>
+        <property name="iterationsPerUpdate" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <property name="xInit" class="ptolemy.data.expr.Parameter" value="0.0">
+        </property>
+        <property name="xUnit" class="ptolemy.data.expr.Parameter" value="1.0">
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Edward A. Lee</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure><p>The ArrayPlotter reads arrays of doubles via its input multiport and plots each received array as a separate data set. The actor displays a plot graph on the screen. By default, the actor updates the display each time it iterates.</p>
+
+<p>Note: updating the display can be costly in terms of system resources. Specify the number of actor iterations that should pass between display updates with the iterationsPerUpdate parameter. For example, if iterationsPerUpdate = 2, then every second time the actor fires, it will update the display (i.e., the actor will update its display on the first firing, the third, the fifth, etc.) The actor will consume its inputs on every firing, regardless of the value of the iterationsPerUpdate parameter.</p></configure></property>
+<property name="port:input" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>A multiport that receives arrays of doubles.</configure></property>
+<property name="prop:xInit" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The starting point of the X-axis.</configure></property>
+<property name="prop:fillOnWrapup" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Specify whether to rescale the plot so that all data is visible. By default, the actor scales the plot to fill the display area.</configure></property>
+<property name="prop:startingDataset" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The number of the dataset that should be plotted first. The value must be a non-negative integer. The default is 0.</configure></property>
+<property name="prop:legend" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Annotations that will be displayed with the plot graph. Specify a comma-separated list of values that correspond to the input data sets (e.g., rainfall, temperature, elevation).</configure></property>
+<property name="prop:iterationsPerUpdate" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The number of actor iterations that should pass between display updates. The value must be a non-negative integer. The default value is 1.</configure></property>
+<property name="prop:xUnit" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The increment along the X-axis.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:15:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.actor.lib.gui.ArrayPlotter">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:891:1">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Plotter">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#GraphicalOutput">
+        </property>
+        <property name="semanticType222" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:5:1#ScatterPlot">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[340.0, 10.0]">
+        </property>
+        <configure>
+<?plotml <!DOCTYPE plot PUBLIC "-//UC Berkeley//DTD PlotML 1//EN"
+"http://ptolemy.eecs.berkeley.edu/xml/dtd/PlotML_1.dtd">
+<plot>
+<title>Array Plotter</title>
+<xLabel></xLabel>
+<yLabel></yLabel>
+<xRange min="0.0" max="77.0"/>
+<yRange min="12.699999809265137" max="43.5988910254282"/>
+<default connected="no" marks="dots" stems="yes"/>
+</plot>?>
+        </configure>
+    </entity>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation4" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation5" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation6" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation7" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation8" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="GoesPointReader.output" relation="relation3"/>
+    <link port="GoesI2T.input" relation="relation3"/>
+    <link port="GoesI2T.output" relation="relation"/>
+    <link port="CimisReader.output" relation="relation2"/>
+    <link port="ArrayIntersect.input0" relation="relation"/>
+    <link port="ArrayIntersect.input1" relation="relation2"/>
+    <link port="ArrayIntersect.output0" relation="relation4"/>
+    <link port="ArrayIntersect.output0" relation="relation7"/>
+    <link port="ArrayIntersect.output1" relation="relation5"/>
+    <link port="ArrayIntersect.output1" relation="relation8"/>
+    <link port="Regression.graphicsFileName" relation="relation6"/>
+    <link port="Regression.Independent" relation="relation4"/>
+    <link port="Regression.Dependent" relation="relation5"/>
+    <link port="ImageJ.input" relation="relation6"/>
+    <link port="Array Plotter.input" relation="relation7"/>
+    <link port="Array Plotter.input" relation="relation8"/>
+</entity>

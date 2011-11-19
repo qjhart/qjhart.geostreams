@@ -1,0 +1,250 @@
+\section{Data and Query Model}
+\label{sec:model}
+
+Our data model for RSI data is based on raster images. To allow for
+different types of objects called image, we employ some concepts from
+the Image Algebra \cite{ritter99image-algeb,wilson01handb-comput} and
+extend these concepts to account for the specifics of RSI data.
+
+An image consists of a set of points and values associated with these
+points. The \emph{point set} of an image is a set of points and an
+associated measure of distance between points, making it a simple
+topological space.  As our interest is in RSI, we choose as point set
+\ps{X} a subset of $\mathbb{Z}^3$, with a point $\pt{x} \in \ps{X}$ of
+the form $\pt{x} = \langle x,y,t \rangle$. The pair $\langle x,y
+\rangle$ denotes a spatial location in some absolute coordinate
+system, and the component $t$ is a timestamp. Thus, a point set
+exhibits spatio-temporal characteristics.
+%
+A \emph{value set} \vs{V} provides the values associated with points
+in a given point set. In the case of color images, $\mathbb{V}$ is a
+subset of $\mathbb{Z}^3$ (for red, green, and blue), and for
+gray-scale images, it is a subset of \vs{Z}. 
+%In general, any value set
+%can be chosen for a point set to describe a discrete or physical
+%image. 
+Based on the concepts of point and value sets, we can now give a
+functional representation of an image.
+
+\begin{definition}
+  Given a point set \ps{X} and value set \vs{V}. A \vs{V}-valued
+  image \im{i} is a function from \ps{X} to \vs{V}, denoted $\im{i} =
+  \{(\pt{x}, \im{i}(\pt{x})) \mid \pt{x} \in \ps{X}\}$. The pair
+  $(\pt{x}, \im{i}(\pt{x}))$ is called a \emph{pixel} of \im{i}.
+  \pt{x} is the spatio-temporal component of the pixel and
+  $\im{i}(\pt{x}) \in \vs{V}$ is the \emph{pixel value} at point  \pt{x}.
+\end{definition}
+
+In general, there are no restrictions on the shape or order points in
+a point set can have. However, we will restrict our discussions to
+points and point sets located in an absolute coordinate system that
+provides the basis for formulating queries against a stream of RSI
+data.
+
+% where the spatial location $\langle 0, 0 \rangle$ corresponds
+%to the origin of the coordinate system (i.e., the leftmost lower
+%corner).
+
+%Figure \ref{fig:pointset} shows an example of a point set.
+
+Different types of RSI admit different possible orderings and
+structures.  Some sensors, such as NOAA's Geostationary Operational
+Environmental Satellite (GOES), obtain RSI data image-by-image.
+Although conceptually the data collected by GOES can be viewed as a
+stream of images, individual images are obtained in a \emph{row-scan
+  order} in which pixels are delivered line-by-line (see also
+Figure~\ref{fig:pointsets}). Other types of remote sensing equipment
+even gathers data on a point-by-point basis.
+% in which two consecutive
+%points in an RSI stream have a very close spatial and temporal
+%proximity.
+
+
+\newpsobject{cover}{psframe}{linecolor=white,fillstyle=solid,fillcolor=white,linewidth=1pt}
+\newpsobject{pointset}{psgrid}{gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=0.5pt}
+\newpsobject{edge}{psframe}{linecolor=black,linewidth=0.5pt}
+
+\begin{figure}[htbp]
+  \centering
+\subfigure{
+  \begin{pspicture}(-2.5,0)(9.5,15)
+    %\psgrid(-3,0)(10,15)
+    \psset{viewpoint=-0.25 -1 1}
+    \ThreeDput[normal=0 -1 0](1,9,1){\cover(8,8)\pointset(8,8)\edge(8,8)}
+    \ThreeDput[normal=0 -1 0](1,6,1){\cover(6,6)\pointset(6,6)\edge(6,6)}
+    \ThreeDput[normal=0 -1 0](4,3,0){\cover(7,7)\pointset(7,7)\edge(7,7)}
+    \ThreeDput[normal=0 -1 0](2,0,2){\cover(4,4)\pointset(4,4)\edge(4,4)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(10,0)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \ThreeDput[normal=1 0 0]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \rput(10,2){\Large x}
+    \rput(0,9){\Large y}
+    \rput(-2.5,8){\Large t}
+  \end{pspicture}}
+\subfigure{
+  \begin{pspicture}(-2.5,0)(9.5,15)
+    \psset{viewpoint=-0.25 -1 1}
+    \ThreeDput[normal=0 -1 0](1,8.5,1){\cover(6,1)\pointset(6,1)\edge(6,1)}
+    \ThreeDput[normal=0 -1 0](1,8,2){\cover(6,1)\pointset(6,1)\edge(6,1)}
+    \ThreeDput[normal=0 -1 0](1,7.5,3){\cover(6,1)\pointset(6,1)\edge(6,1)}
+    \ThreeDput[normal=0 -1 0](1,7,4){\cover(6,1)\pointset(6,1)\edge(6,1)}
+    \ThreeDput[normal=0 -1 0](1,6.5,5){\cover(6,1)\pointset(6,1)\edge(6,1)}
+    \ThreeDput[normal=0 -1 0](1,6,6){\cover(6,1)\pointset(6,1)\edge(6,1)}
+    \ThreeDput[normal=0 -1 0](4,6,0){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](4,5.5,1){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](4,5,2){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](4,4.5,3){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](4,4,4){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](4,3.5,5){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](4,3,6){\cover(7,1)\pointset(7,1)\edge(7,1)}
+    \ThreeDput[normal=0 -1 0](2,1.5,2){\cover(4,1)\pointset(4,1)\edge(4,1)}
+    \ThreeDput[normal=0 -1 0](2,1,3){\cover(4,1)\pointset(4,1)\edge(4,1)}
+    \ThreeDput[normal=0 -1 0](2,.5,4){\cover(4,1)\pointset(4,1)\edge(4,1)}
+    \ThreeDput[normal=0 -1 0](2,0,5){\cover(4,1)\pointset(4,1)\edge(4,1)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(10,0)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \ThreeDput[normal=1 0 0]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \rput(10,2){\Large x}
+    \rput(0,9){\Large y}
+    \rput(-2.5,8){\Large t}
+  \end{pspicture}
+}
+\subfigure{
+  \begin{pspicture}(-2.5,0)(9.5,15)
+    \psset{viewpoint=-0.25 -1 1}
+    \ThreeDput[normal=0 -1 0](1,7.5,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](1,7,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](2,6.5,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](3,6,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](4,5.5,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](5,5,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](6,4.5,3){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](5,4,4){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](4,3.5,4){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](3,3,4){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](2,2.5,4){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](2,2,4){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](2,1.5,5){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](3,1,5){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](4,.5,5){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+    \ThreeDput[normal=0 -1 0](5,0,5){\psframe[linewidth=0.5pt,fillstyle=solid,fillcolor=white](1,1)}
+%
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(10,0)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \ThreeDput[normal=1 0 0]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \rput(10,2){\Large x}
+    \rput(0,9){\Large y}
+    \rput(-2.5,8){\Large t}
+  \end{pspicture}
+}
+\caption{%
+%
+   Examples of different point set orderings for streaming RSI data:
+  image-by-image, line-by-line, and  point-by-point.
+%
+}
+\label{fig:pointsets}
+\end{figure}
+
+
+All the above scenarios describing how RSI data is obtained show an
+important characteristics we aim to exploit in our approach:
+% to indexing a stream of geospatial image data: 
+\emph{the points in a point set exhibit certain trends}. That is,
+consecutive points in a stream of RSI data have a close spatial and
+temporal proximity. The only exception is where the last point of a
+line in an image is followed by the first point of a new image
+(scenario on the left in Figure \ref{fig:pointsets}). As we will show
+in the following section, knowing about the \emph{trendiness} of
+incoming geospatial point data can have a significant influence on how
+queries against a stream of RSI data are processed.
+
+Queries against a stream of RSI data are typically continuous queries
+that run for a long time and may include complex operators, such as
+spatial transformations, sensor-band algebra operations, or aggregates
+(see, e.g., \cite{ritter99image-algeb,wilson01handb-comput}, for
+operations on point sets). However, since not all applications are
+interested in the complete region covered by a sensor (or satellite),
+\emph{spatial restriction} is a type of operation common to all
+queries. A spatial restriction specifies a \emph{region of interest},
+primarily in the form of a rectangle, and typically preceed other
+operations on point data. In the following, we describe an index
+structure and algorithms to efficiently determine what query regions
+are affected by incoming geospatial image data.
+
+
+%Depending on the geospatial ordering of points in an image, it can be
+%chunked in various ways as it's input to operators 
+
+%into the \ac{dsms}.  One way is
+%to chunk each pixel separately; that is each tuple is the point and
+%value $(\pt(x),a(\pt{x}))$.  For non-homogeneous images this is
+%basically the only possible method.  For $n$ rectangular queries, a
+%stabbing data structure like an interval tree could choose the
+%matching restrictions in $O(\card{a}\lg{n})$ for all $n$ queries, with
+%an index structure of $O(n\lg{n})$ size~\cite{spatialalgos}.
+
+%Advantages of representing images in the \ac{dsms} as a set of points
+%is that it's the most general; it requires no order on the images; and
+%tuples either match restriction queries or not, they do not need to be
+%modified.  The main disadvantages are that there is a large overhead
+%in representing the point set, and that satisfying restrictions is
+%slow.
+
+%Once an order has been described for an image point set other possible
+%chunking methods are possible.  For example, for each point in the
+%temporal dimension an entire 2-d image could be passed,
+%$(x_n,x_x,t,\im{a})$, where the minimum and maximum points, $x_n$, and
+%$x_x$ describe the 2-d image point set.  The advantages of this
+%formulation is the compact representation of the point set and image.
+%the main disadvantage is that for queries that overlap, you get an
+%increase in the number and size of tuples in the \ac{dsms} which have
+%many redundant pixels.
+
+%For row scan images, a convenient chunking is on each input row.  Each
+%new chunk corresponds to discontinuities in the original point set.
+%With this chunking, the resultant images can be formed by simply
+%concatenating all processed tuples together.
+
+%Chunking by rows has some of the same problems as chunking by 2-d
+%images, in that multiple queries can replicate much of the data, and
+%the time in creating new tuples can be considerable.  However, for
+%normal representations of images, some of this cost can be eliminated
+%by retaining the original input row tuple and reusing that image data.
+%The key is that no discontinuities exist in the row of image data.
+%New restricted rows can use pointers into the existing image data, and
+%only need to create new point sets.  Figure~\ref{fig:rows} illustrates
+%multiple restrictions using common image data.
+
+%\begin{figure}[htbp]
+%  \centering
+%  \subfigure[input row]{
+%    \begin{FramePic}[10,10]
+%    \psframe[fillstyle=solid,fillcolor=gray](0,4)(10,5)
+%    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,4)(10,5)
+%   \roi[style=query](1,1)(6,6){$S$}
+%   \roi[style=query](2,4)(9,8){$T$}
+% \end{FramePic}}
+%\quad
+% \subfigure[output tuples]{
+%   \begin{pspicture}(10,10)
+%     \uput{7pt}[u](5,6){$S:(s_n,s_x,r,i_s)$}
+%     \psframe[fillstyle=solid,fillcolor=gray](1,6)(6,7)
+%    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,6)(10,7)
+%    \uput{7pt}[u](5,2){$T:(t_n,t_x,r,i_t)$}
+%    \psframe[fillstyle=solid,fillcolor=gray](2,2)(9,3)
+%    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,2)(10,3)
+%   \end{pspicture}
+% }
+% \caption{%
+%   Multiple restriction queries on row chunked images.  By retaining
+%   the original image data, all matching restrictions can point into
+%   the same image data object.  Only point set information needs to be
+%   created for each new tuple.}
+% \label{fig:chunk}
+%\end{figure}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "hart04stdbm"
+%%% End: 

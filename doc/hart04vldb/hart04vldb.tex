@@ -1,0 +1,1117 @@
+\documentclass{vldb}
+%\usepackage{geostreams}
+% Used this one to keep constantly adding to texmf directory
+\usepackage{../geostreams}
+\usepackage{epsfig}
+\usepackage{acronym}
+
+% My Region of Interest for now.
+% once cleaned up, move to geostreams.sty
+\makeatletter
+\def\roI{\pst@object{roI}}
+\def\roI@i(#1){%
+ \@ifnextchar({\roI@ii(#1)}{\roI@ii(0,0)(#1)}%)
+ }
+\def\roI@ii(#1)(#2)#3#4{\psframe@i(#1)(#2)%
+ \uput{5pt}[ur](#1){#3}\uput{5pt}[dl](#2){#4}}
+%\makeatspecial
+
+\title{Issues for Streaming geospatial imagery}
+
+\author{\parbox{5in}{\parbox{2in}{\center Quinn Hart} \hfill Shefali}}
+\institution{
+\parbox{5in}{
+\parbox{2in}{ 
+\center
+University of California, Davis\\
+Davis\\
+California\\
+qjhart@ucdavis.edu}
+%
+\hfill
+%
+\parbox{2in}{
+\center
+University of California, Davis\\
+Davis\\
+California\\
+qjhart@ucdavis.edu}
+}}
+\begin{document}
+\maketitle
+
+\acrodef{RSI}{Remotely Sensed Imagery}
+\acrodef{bsq}{band sequential interleave}
+\acrodef{bil}{band interleave by line}
+\acrodef{bip}{band interleave by pixel}
+\acrodef{dsms}{data stream management system}
+
+\begin{abstract}
+  Streaming database processing has a great deal of potential impact
+  for remotely-sensed imagery.  Besides it typically large bandwidth,
+  imagery has a number of attributes that are different from generic
+  streaming data.  First, many queries want to select small spatial
+  regions from a larger region.  Secondly, the data is highly
+  organized as it streams.  
+%  
+  The organization of imagery data can be represented quite
+  differently from traditional relational data was well.  This is
+  especially true for streaming images, where data often arrives in a
+  very chunk-like manner, where regular portions arrive
+  simultaneously.  
+%
+Often these chunks of data arrive with attributes
+  associated to the chunk, applying in some way to the individual
+  parts of the image.  In this paper we describe how we take advantage
+  of both of these aspects in our query processor.  We describe a
+  methodology handle many spatial extent queries over a single stream,
+  which minimizes the size of the processing system and in-flight
+  data.
+
+\end{abstract}
+
+\section{Overview}
+
+Data products generated from \acl{RSI} and used in emerging areas such
+as global climatology, environmental monitoring, land use, and hazards
+and disaster management (see \cite{atkin99advan-remot,
+  curtis99introd-envir, hinton96gis-remot, ,skidm02envir-model} for an
+overview), currently require costly and time consuming efforts in
+processing the data.  For the consumer, data is typically fully
+replicated using file-based approaches and then has to undergo several
+batch-oriented preprocessing steps before the data can eventually be
+processed to obtain a data product. These processes are often
+duplicated at many sites for different and even the same type of
+applications.  For the provider, data distribution is often tied
+directly to the data archiving task, the result being that providing
+timely, customized products to the consumer is made more difficult by
+additional constraints on the system.
+
+Many sensors are transmitting data in a continuous stream to the
+receiving stations, but current models, methods, and techniques in
+processing \ac{RSI} neither utilize the stream nature of the imagery, nor
+do they expose database like concepts and architectures that provide
+users and applications with rich and efficient operators to retrieve
+and manipulate (streaming) remotely sensed data of interest.
+
+On the other hand, there have recently been considerable advancements
+in \acl{dsms}, where data arrives in multiple, continuous, and
+time-varying data streams and does not take the form of persistent
+relations.  Most research in \ac{dsms} concentrates on simple structured,
+usually relational data.  Query operators and query processing
+techniques are based on those known and studied in the context of
+relational databases and do not yet support data streams that contain
+complex and heterogeneous types of objects.
+
+The above observations clearly suggest a strong potential benefit in
+adopting and extending models and techniques developed for \ac{dsms} to the
+management and processing of \acl{RSI}. The complexity and
+heterogeneity as well as various non-traditional (compared to
+relational) operations on \ac{RSI} pose several questions.
+
+Section~\ref{sec:model} describes an initial model for processing
+streaming remotely sensed data.  The model draws heavily on image
+algebra as a methodology of describing not only processes on images,
+but also on queries of \ac{RSI} system.  We describe a small set of
+important operators in describing and optimizing queries on \ac{RSI}.
+Since image algebra has basis in set theory, there is much overlap
+with more traditional relational algebra.  We will describe how our
+model admits a number of rewrite rules that can allow for
+optimizations on multiple query optimizations of \ac{RSI}.
+
+Section~\ref{sec:cost} uses this model to investigate some
+optimization strategies for \ac{RSI}.  We develop an appropriate cost
+model for multiple queries on the incoming \ac{RSI} data and describe
+some hueristics in query planning.  Where our model is valid for
+arbitrarily arranged images, determining costs of different query
+plans is very dependant on the ordering of the image data.
+Fortunately, we can take advantage of the highly organized nature of
+most \ac{RSI} data to improve processing costs.  The behavior of some
+simple image algebraic operations is discussed in more detail.
+
+Section~\ref{sec:results} shows some preliminary results from the
+initial testbed application that we are developing.
+
+\subsection{Previous Work}
+
+Extensions of the relational model for images have been well studied,
+with proposals to integrate images completely within the relational
+model~\cite{pixel-one}, and methods that develop user-defined
+ADT's~\cite{pixel-one, grid one}.  Image
+algebra~\cite{wilson01handb-comput, ritter99image-algeb}, is the basis
+of the image model in this framework.
+
+On the other hand, there have recently been considerable advancements
+d in \acl{dsms} \cite{babcoc02model-issues, carney02monit-stream,
+  heller00adapt-query}. In such systems, data arrives in multiple,
+continuous, and time-varying data streams and does not take the form
+of persistent relations. There are currently several research efforts
+in the context of \ac{dsms} that focus on core issues such as adaptive
+query processing \cite{CDN2002a, madden02fjord-stream,
+  madden02contin-adapt,SHC2003a}, meaning and implementation of
+blocking operators, including aggregation and sorting
+\cite{HH99a,LEH2002a}, and approximate query processing techniques
+\cite{DGG2002a,GKS2001a}.
+
+
+Work on multi-query optimization \cite{}, and streaming query plans
+~\cite{},  have traditionally used.
+
+Madden, et al.~\cite{madden99etc} describe group filters in the
+processing of multiple queries for streaming relational data.  The
+query plan takes advantage of the ...
+
+Andrade, et al.~\cite{andrade02exploi-funct} described a method for
+multi-query optimization of image analysis by decomposing complex
+functions into more primitive operations which admit better reuse
+properties, with an emphasis on aggregation functions.  Similar
+metrics to the cost model described here where ...
+
+\section{Data Model}
+\label{sec:model}
+
+The primary data item in our model is the image.  We define base our
+model of an image on that described in image
+algebra~\cite{wilson01handb-comput, ritter99image-algeb}.  The
+following is a brief introduction to image algebra, a more thorough
+introduction is found in~\cite{wilson01handb-comput}, from which we
+adopt a notation.  Image algebra is a unified theory for image
+transformation and analysis.  It is a many valued algebra, with
+multiple operators and operands.  Images consist of sets of points and
+values associated with these points.  The \emph{point set} of an image
+is a set of points and an associated measure of distance between the
+points, making is a simple topological space.  Points set are denoted
+with bold capital upright letter, i.e., \ps{X} \ps{Y} \ps{Z}.  Points
+within a point set are denoted with lower case bold letters, i.e.,
+$\pt{y} \in \ps{X}$.  In general, there are no restrictions on the
+shape, orderliness, or values that points within a point set take.
+However, when we define our geostreams, we will will restrict our
+discussion to integral points regularly spaced apart.  This is
+primarily to allow standard geolocation methods and image formats, and
+doesn't effect a more general view to the discussion below.  For
+brevity in the example below, we introduce shorthand notation to
+represent the rectangular points sets.
+
+\begin{align*}
+\ps{P} = \RPSnx{n}{x} &= {i \in \Z[2] \qquad \pt{n} \le \pt{i} \le \pt{x}}  \\
+\ps{Q} = \RPSnd{n}{d} &= {i \in \Z[2] \qquad \pt{n} \le \pt{i} \le \pt{n}+\pt{d}} \\
+& \text{where } \pt{n},\pt{x},\pt{d} \in \Z[n] \\
+\pt{n} &< \pt{i} \equiv n_1 < i_1, n_2 < i_2, \ldots, n_n < i_n
+\end{align*}
+
+Note that the points $\pt{n}$ and $\pt{x}$ correspond to
+$\bigwedge{\ps{P}}$ and $\bigvee{\ps{P}}$ respectively.  These
+notations simply define regular integer points by defining their
+minimum and maximum, and minimum and delta points respectively.
+
+The standard $n$-dimensional point operations apply, i.e,
+$\im{x}+\im{y} = (x_1+y_1,x_2+y_2,\ldots,x_n+y_n)$, however as we will
+see, one dimension in our geostreams model is temporal, and therefore
+these operations do not have a purely geometric interpretation.
+
+\emph{Value sets}, the values associated with the points in the point
+set, are taken from a homogeneous set of operands, typically sets like
+integers, $\Bbb{Z}$, real numbers, $\Bbb{R}$.  Value sets have the usual
+operations associated with their universal set.
+
+\emph{Images} are defined in very general terms, first the notation
+$A^B$ describes the set of all functions, $f \in A^B: f {\texttt is a
+  function from} B {\texttt to} A$.  An image then, is any function
+that maps from value set \vs{F} to point set \ps{X}.  For an
+\vs{F}-valued image, \im{a} ($\im{a}: \im{X} \to \vs{F}$).  \vs{F} is
+the possible \emph{range} of the image \im{a}, and \ps{X} is the
+\emph{domain} of \im{x}.
+
+Often, a more convenient notation for an image $\im{a} \in
+\vs{F}^{\ps{X}}$, is the \emph{graph} or \emph{data structure
+  representation}, $\im{a} = \{(\pt{x},\im{a}(\pt{x}) : \pt{x} \in
+\ps{X}\}$.  Here the pair $(\pt{x},\im{a}(\pt{x}))$ is a \emph{pixel}
+of the image.  The first coordinate $\pt{x} \in \ps{X}$ is the
+\emph{pixel location} and the second coordinate $\im{a}(\pt{x}) \in
+\vs{F}$ is the \emph{pixel value} at location \pt{x}.
+
+Any operation that operates on the value set \vs{F}, induces the
+natural operation on \vs{F}-valued images.  If $\gamma$ is some binary
+operation on \vs{F}, then for $\im{a},\im{b} \in \imType{F}{X}$,
+
+\begin{align}
+\im{a} \gamma \im{b} &= \{(x,a(x)\gamma b(x)) : x \in \ps{X}\}
+\end{align}
+
+For real valued images, $\imType{R}{X}$, some basic binary operations
+include, $\im{a}+\im{b},\im{a} \cdot \im{b},\im{a} \bigvee \im{b}$.
+
+Functional operations are similar.  If $f: \vs{F} \to \vs{F}$, then
+the induced operation on $\im{a} in \imType{F}{X}$ is \[ f(\im{a}) =
+\{(x,f(a(x))) : x \in \ps{X}).\]
+
+\begin{align}
+\im{a} + \im{b} &= \{(x,a(x)+b(x)) : x \in \ps{X} \} \\
+\im{a} \cdot \im{b} &= \{(x,a(x) \cdot b(x)) : x \in \ps{X} \} \\
+\im{a} \wedge \im{b} &= \{(x,a(x) \wedge b(x)) : x \in \ps{X} \} \\
+\im{a} \vee \im{b} &= \{(x,a(x) \vee b(x)) : x \in \ps{X} \}
+\end{align}
+
+One of the most common operations on images is the \emph{image
+  restriction} which restricts images to specific point set.  In image
+algebra, if $\im{a} in \imType{F}{X}$, then the restriction, $a|_Z$ is
+defined as
+
+\begin{gather}
+  \im{a}|_\ps{Z} \equiv \im{a} \cap \ps{Z} \times \vs{F} = \{(x,a(x)): x \in \ps{Z}\}.
+\end{gather}
+
+In some models for images, the above formulation is a selection, eg.
+$\sel{x \in \ps{Z}}(a)$, others formulate this as a spatial join, $a
+\ltimes_{a.x = Z.x} \ps{Z}$, and others formulate it as a function
+on an ADT.  
+
+\emph{Spatial transformations} map an image from one point set to
+another.  In general, for any function, $f$, between two point sets,
+$f: \ps{Y} \rightarrow \ps{X}$, and an image $a \in \imType{F}{X}$,
+the spatial transform, $\im{a} \circ f$ is defined as:
+
+\begin{gather}
+\im{a} \circ f = \{(y,a(f(y)): y \in \ps{Y} \}
+\end{gather}
+
+Spatial transformations are used for magnification, rotation and
+general affine transformations.  For geolocated imagery, reprojection
+of data into a new coordinate system is also a geometric
+transformation.
+
+The examples below are restricted to a very simple reduction
+transformation, $m_{n}$, which we define as
+
+\begin{equation}
+  m_{n}(\pt{x}) = 
+    \begin{cases}
+      \pt{x} & \text{if $x_i \mod n = 0$ for all $(x_0,x_1,\ldots,x_n)$ } \\
+      0 & \text{otherwise}.
+    \end{cases}
+  \end{equation}  
+  
+  This transformation simply takes the $n$th pixel from an image.
+  This is often used to sample a larger image down to a smaller size.
+  
+  Another geometric transform changes the dimensionality of a point
+  set.  For, example, An image in (x,y,t) but with one value of t, can
+  be transformed to a new point set in (x,y) alone.
+
+\subsection{Relational Images} 
+
+A special set of images can be defined where the value set of the
+image is a multi-valued To do selections?  How can a selection modify
+a point set.
+
+Here's an example.  We want to select only images that come on the
+hour. $X=>i X=(x,y,t) \in R^3.  \im{t}|_{X=(x,y,t) t\in
+\prj{\sel{t}}{TIME \mod hour =0}}$
+
+
+\subsection{Functional rewriting rules for images}
+
+One goal of the geostream system is to allow for optimization of
+multiple queries by investigating rewriting methods of input
+functional queries.  The basic binary image operations are
+inconvenient for these purposes and we introduce some additional
+operations as to allow for greater latitude in query rewrites.  The
+induced binary operations on images, $\im{a} \gamma \im{b}$, is
+defined only when $\im{a},\im{b} \in \imType{F}{X}$.  This disallows
+some rules, eg.
+
+\[\im{a}|_\ps{A} + \im{b}|_\ps{A} \ne (\im{a}+\im{b})|_\ps{A}\]
+
+since the left hand side holds for $\im{a} \in \imType{F}{X}, \im{b}
+\in \imType{F}{Y}$ while the right side generally does not.  Therefore
+a new notation is introduced.  For two images, $\im{a} \in
+\imType{F}{X}, \im{b} \in \imType{F}{Y}$ and a binary operation
+$\gamma$ on \vs{F} \[ \im{a} \gamma_\cap \im{b} = \{ (x,a(x) \gamma
+b(x)) : x \in \ps{X} \cap \ps{Y} \}. \] Figure~\ref{fig:cap}
+illustrates the this operation.
+
+\psset{unit=0.2}
+\begin{figure}[htbp]
+  \centering
+%  \subfigure[$\im{a} \in \imType{F}{\RPSnx{(1,1)}{(7,7)}} \im{b} \imType{F}{\RPSnx{(2,2)}{(9,9)}}$]{
+%  \subfigure[$\im{a},\im{b}$]{
+    \begin{FramePic}[10,10]
+   \roi[style=frame](1,1)(7,7){\im{a}}
+   \roi[style=frame](2,2)(9,9){\im{b}}
+ \end{FramePic}
+%}
+\quad
+%\subfigure[$\im{a} +_\cap \im{b}$]{
+  \begin{FramePic}[10,10]
+   \roi[style=overlap](2,2)(7,7){$\im{a} +_\cap \im{b}$}
+ \end{FramePic}
+%}
+\label{fig:cap}
+\caption{%
+%
+  In this example $\im{a}+\im{b}$ is not defined, where $\im{a} +_\cap
+  \im{b}$ is shown}
+\end{figure}
+
+This will be the default induced operation on images used in the
+system.  It has the nice property that arbitrary \vs{F}-valued images
+can be combined.  In addition, restrictions placed on the point set of
+geostreams defined below take advantage of this formulation.
+
+With the above definition, the following rules regarding the image
+operations are available.  $\im{a} \in \imType{F}{X}, \im{b} \in
+\imType{F}{Y}$.
+
+\begin{align}
+\im{a}|_\ps{A}|_\ps{B} &= \im{a}|_{\ps{A}\cap\ps{B}} \\
+(\im{a} \gamma_\cap \im{b})|_\ps{A} &= \im{a}|_\ps{A} \gamma_\cap \im{b}|_\ps{A} \\
+\im{a}|^\im{b} &= \im{a}|_\ps{Y}|^\im{b}
+\end{align}
+
+Spatial transformations and resrictions can be interchanged with a
+change of the point set on the restriction.  For, $\im{a} \in
+\imType{F}{X}$, where $f: \ps{Y} \rightarrow \ps{X}$.  If $\ps{Z}
+\subset \ps{X}$, then $\ps{W} = f{y} \pt{y} \in \ps{Y}$.
+
+\begin{align}
+  \im{a}|_\ps{Z} \circ f &= (\im{a} \circ f)|_{\ps{W}} \\
+  \text{where} \\
+  f &= W \rightarrow Z
+\end{align}
+
+Extensions are neither associative or transitive.  Often however, it
+is useful to rewrite an extension as a restriction/extension pair.
+The restriction can then be moved in the query plan to produce a
+better cost.  For example, imagine a query that selects pixels from a
+region that are over some threshold value, filling the rest of the
+pixels with 0.  This could be written as
+$(\im{a}||_{>th})|^{0\RPSnxD}$.  Expanding the extension
+$|^{0\RPSnxD}=|_{0\RPSnxD}|^{0\RPSnxD}$, and moving the restriction,
+we get, $(\im{a}|_{0\RPSnxD}||_{>th})|^{0\RPSnxD}$.  For our cost
+model, an estimate for the value set restriction may be $O(||a||^2)$,
+since the size of the image is $||\im{a}||$, and the time to test the
+value restriction is $O(||\im{a}||)$ as well, since each pixel is
+checked.  Assuming that rectangular point set restriction takes
+constant time, then the cost of the first plan is
+$c_{thres}||\im{a}||^2+c_{ext}||\im{a}|_{0\RPSnxD}||$, and for the
+second plan is $(c_{rest}+c_{thres}+c_{ext})||\im{a}|_{0\RPSnxD}||$.
+Figure~\ref{fig:extension}.
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure[$(\im{a}||_{>th})|^{0\RPSnxD}$]{
+\lnd{\im{a}} \vsrnd{>th} \extnd{0\RPSnxD}
+\tree}
+  \subfigure[$(\im{a}|_{0\RPSnxD}||_{>th})|^{0\RPSnxD}$]{
+\lnd{\im{a}} \psrnd{0\RPSnxD} \vsrnd{>th} \extnd{0\RPSnxD}
+  \tree    }
+  \caption{Query Trees}
+  \label{fig:extension}
+\end{figure}
+
+\subsection{Geostream}
+
+We assume the following about our input geostream.  A geostream can be
+thought of as a relation with an attribute that is an image.  The
+image has two spatial dimensions, and on temporal dimension.  It is
+also restricted to a rectangular point set, in these examples in \Zp[3]
+and the image arrives in row-scan order.  We also assume that all
+other attributes of a geostream arrive before the image, and that the
+rectangular point set of the image can be determined at the start of
+the image stream.  The image arrives in discrete pieces, which we call
+``chunks''.  In this example, we assume that a chunk contains an
+integral number of complete rows of imagery.  These assumptions are
+typical of many image formats, in particular they correspond to the
+GOES GVAR format our target application.
+
+\subsubsection{Abstract}
+
+Abstract view of a stream, with metadata.  A synonymous term is we use
+is a relational image, that is a relation that has one attribute that
+is an image type.  We define this mostly for notational convenience.
+We use the simple {\bf a} to represent the image of a relation a.
+(a\prj{image} => {\bf a})
+
+\section{Operator costs}
+
+Just as in relational algebra, our input image algebra formulation
+describes what output images are formed, but not how they are formed.
+In order to understand multi-query optimization we examine some of the
+costs of individual operators in our framework.  
+
+\subsection{Restrictions}
+
+As we described in Section~\ref{sec:geostreams}, a geostream is
+defined as a single image, with one dimension, the temporal dimension,
+extending indefinitely.  This formulation simplifies the algebraic
+formulations take by queries on the system, but doesn't help define
+how queries are processed.  It's clear that this image needs to be
+processed in parts, which we'll call chunks, but what the properties
+of the image are and how these chunks are presented affect the cost of all
+operators.
+
+Different images admit different possible ordering and structure.  For
+example, some images have non-uniform point set structures, and may
+only be ordered by time.  Active sensors, such as lidar, which take
+point measurements at discrete time steps are such a dataset.  Most
+images however, have a uniform grid of points with associated values.
+Along with this gridded structure, the images have a specific
+ordering. Figure~\ref{fig:lidar} shows an example of two types of
+point sets associated with images and their ordering.  The most popular
+ordering for images is row-scan order, in which pixels are delivered
+row by row.  For a geostream, the temporal dimension order would
+follow after each complete 2-d spatial image.  Images of this type
+allow for compact descriptions of entire point set by specifying the
+minimum and maximum point values for the set.
+
+In many applications, there are multiple spectral bands associated
+with an image.  Our focus in this paper is on the spatial aspects of
+images, and we ignore multi-spectral images.  Two of the three most
+popular image formats, \ac{bil},ac{bsq} decompose into row scan order
+for each band.  The third format, \ac{bip} orders first by all bands
+of a pixel, and would not follow the framework shown below.
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure{
+    \begin{FramePic}[10,10]
+      \pscurve[dotstyle=x,showpoints=true]{->}%
+        (1.4,1.5)(1.6,2.6)(1.5,3.7)(1.5,4.8)(1.3,5.9)(1.5,7.0)(1.6,8.2)(1.7,9.3) %
+        (3.2,9.5)(3.0,8.6)(3.0,7.4)(2.9,6.5)(2.8,4.5)(2.6,3.5)(2.8,2.5)(3.2,1.5)%
+        (4.4,1.5)(4.6,2.6)(4.5,3.7)(4.5,4.8)(4.3,5.9)(4.5,7.0)(4.6,8.2)(4.7,9.3) %
+        (6.2,9.5)(6.0,8.6)(6.0,7.4)(5.9,6.5)(5.6,5.5)(5.8,2.5)(6.2,1.5)%
+        (8.2,1.3)(8.5,2.1)(8.5,3.4)(8.6,4.5)(8.4,5.3)(8.3,7.4)(8.4,8.8)
+ \end{FramePic}}
+ \subfigure{
+ \begin{FramePic}[10,10]
+   \psline[linecolor=gray]{->}(0.5,9.5)(9.5,9.5)
+   \psline[linecolor=gray]{->}(0.5,8.5)(9.5,8.5)
+   \psline[linecolor=gray]{->}(0.5,7.5)(9.5,7.5)
+   \psline[linecolor=gray]{->}(0.5,6.5)(9.5,6.5)
+   \psline[linecolor=gray]{->}(0.5,5.5)(9.5,5.5)
+   \psline[linecolor=gray]{->}(0.5,4.5)(9.5,4.5)
+   \psline[linecolor=gray]{->}(0.5,3.5)(9.5,3.5)
+   \psline[linecolor=gray]{->}(0.5,2.5)(9.5,2.5)
+   \psline[linecolor=gray]{->}(0.5,1.5)(9.5,1.5)
+   \psline[linecolor=gray]{->}(0.5,0.5)(9.5,0.5)
+ \end{FramePic}
+}
+\label{fig:lidar}
+\caption{%
+%
+  Examples of different point set orderings.  (a) Shows a non-uniform
+  point set ordered by time.  (b) Shows a uniform point set, row-scane
+  order.  }
+\end{figure}
+
+Depending on the ordering of the image, it can be chunked in various
+ways as it's input into the \ac{dsms}.  One way is to chunk each pixel
+separately; that is each tuple is the point and value
+$(\pt(x),a(\pt{x}))$.  For non-homogeneous images this is basically
+the only possible method.  For this chunking and a single restriction
+query, each pixel would need to be compared to the query restriction,
+for a total of \card{a} compares for each image.  For multi-query
+optimizations, it makes sense to combine restriction queries together
+because for $n$ rectangular queries, a stabbing data structure like an
+interval tree could choose the matching restrictions in
+$O(\card{a}\lg{n})$ for all $n$ queries, with an index structure of
+$O(n\lg{n})$ size~\cite{spatialalgos}.  Advantages of representing
+images in the \ac{dsms} as a set of points is that it's the most
+general; it requires no order on the images; and tuples either match
+restriction queries or not, they do not need to be modified.  The main
+disadvantages are that there is a large overhead in representing the
+point set, and that satisfying restrictions is slow.
+
+Once an order has been described for an image point set other possible
+chunking methods are possible.  For example, for each point in the
+temporal dimension an entire 2-d image could be passed,
+$(x_n,x_x,t,\im{a})$, where the minimum and maximum points, $x_n$, and
+$x_x$ describe the 2-d image point set.  In this case, each satisfied
+restriction query would need to create a new tuple with the matching
+image parameters.  For $n$ queries the cost of the operation would be
+$n$ compares, however $n$ new tuples would need to be created with a
+total size of $\sum_{n} \card{q_n}$.  In this case, there is no real
+advantage to combining multiple restrictions into a single operation.
+The advantages of this formulation is the compact representation of
+the point set and image.  the main disadvantage is that for queries
+that overlap, you get an increase in the number and size of tuples in
+the \ac{dsms} which have many redundant pixels.
+
+%The two above chunking schemes can be generalized by noting an image
+%can be chunked arbitrarily.  The individual chunks can be processed
+%through a restriction filter separately and the results can be joined
+%together to form the final image.
+For row scan images, a convenient chunking is on each input row.  Each
+new tuple corresponds to discontinuities in the original point set.
+With this chunking, the resultant images can be formed by simply
+concatenating all processed tuples together.  $n$ restriction queries
+can be handled together in time $O(m_a+n)$, where $m_a$ is the number
+of rows in the image.
+
+Chunking by rows has some of the same problems as chunking by 2-d
+images, in that multiple queries can replicate much of the data, and
+the time in creating new tuples can be considerable.  However, for
+normal representations of images, some of this cost can be eliminated
+by retaining the original input row tuple and reusing that image data.
+The key is that no discontinuities exist in the row of image data.
+New restricted rows can use pointers into the existing image data, and
+only need to create new point sets.  Figure~\ref{fig:rows} illustrates
+multiple restrictions using common image data.
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure[input row]{
+    \begin{FramePic}[10,10]
+    \psframe[fillstyle=solid,fillcolor=gray](0,4)(10,5)
+    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,4)(10,5)
+   \roi[style=query](1,1)(6,6){$S$}
+   \roi[style=query](2,4)(9,8){$T$}
+ \end{FramePic}}
+\quad
+ \subfigure[output tuples]{
+   \begin{pspicture}(10,10)
+     \uput{7pt}[u](5,6){$S:(s_n,s_x,r,i_s)$}
+     \psframe[fillstyle=solid,fillcolor=gray](1,6)(6,7)
+    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,6)(10,7)
+    \uput{7pt}[u](5,2){$T:(t_n,t_x,r,i_t)$}
+    \psframe[fillstyle=solid,fillcolor=gray](2,2)(9,3)
+    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,2)(10,3)
+   \end{pspicture}
+ }
+ \caption{%
+   Multiple restriction queries on row chunked images.  By retaining
+   the original image data, all matching restrictions can point into
+   the same image data object.  Only point set information needs to be
+   created for each new tuple.}
+ \label{fig:chunk}
+\end{figure}
+
+Figure~\ref{fig:multi} shows a region with 2 query restrictions, $S$
+and $T$, and some possible schemes of answering multiple restrictions
+in a single operator.  Figure~\ref{fig:multi}a shows the input
+restrictions.  Figure~\ref{fig:multi}b shows the most space conscious
+method of dividing the input image.  The restriction operator divides
+each row into sections corresponding to the queries that the operator
+satisfies.  The resultant tuples can be satisfy multiple queries.
+Each query can simple concatenate the output tuples to form the final
+image.
+
+\psset{unit=3.5}
+\begin{figure}[htbp]
+  \centering
+  \subfigure[input]{
+    \begin{FramePic}[5,5]
+   \roi[style=query](1,0)(4,3){$S$}
+   \roi[style=query](2,1)(5,4){$T$}
+ \end{FramePic}
+}
+\subfigure[output]{
+  \begin{FramePic}[5,5]
+  \roI[style=frame](0,4)(5,5){$\perp$}{$x_{00}$}
+
+  \roI[style=frame](0,3)(2,4){$\perp$}{$x_{10}$}
+   \roI[style=query](2,3)(5,4){\tiny{$\{T\}$}}{$x_{11}$}
+
+  \roI[style=frame](0,2)(1,3){$\perp$}{$x_{20}$}
+   \roI[style=query](1,2)(2,3){\tiny{$\{S\}$}}{$x_{21}$}
+   \roI[style=query](2,2)(4,3){\tiny{$\{S,T\}$}}{$x_{22}$}
+  \roI[style=frame](4,2)(5,3){\tiny{$\{T\}$}}{$x_{23}$}
+
+  \roI[style=frame](0,1)(1,2){$\perp$}{$x_{30}$}
+   \roI[style=query](1,1)(2,2){\tiny{$\{S\}$}}{$x_{31}$}
+   \roI[style=query](2,1)(4,2){\tiny{$\{S,T\}$}}{$x_{32}$}
+  \roI[style=frame](4,1)(5,2){\tiny{$\{T\}$}}{$x_{33}$}
+
+  \roI[style=frame](0,0)(1,1){$\perp$}{$x_{40}$}
+   \roI[style=query](1,0)(4,1){\tiny{$\{S\}$}}{$x_{41}$}
+   \roI[style=query](4,0)(5,1){$\perp$}{$x_{42}$}
+  \end{FramePic}
+}
+
+\subfigure[output]{
+  \begin{FramePic}[5,5]
+  \roI[style=frame](0,4)(5,5){$\perp$}{$x_{00}$}
+  \roI[style=frame](0,3)(5,4){$\perp$}{$x_{00}$}
+
+  \roI[style=frame](0,2)(1,3){$\perp$}{$x_{20}$}
+   \roI[style=query](1,2)(4,3){\tiny{$\{S\}$}}{$x_{21}$}
+  \roI[style=frame](4,2)(5,3){$\perp$}{$x_{22}$}
+
+  \roI[style=frame](0,1)(1,2){$\perp$}{$x_{30}$}
+   \roI[style=query](1,1)(4,2){\tiny{$\{S\}$}}{$x_{31}$}
+  \roI[style=frame](4,1)(5,2){$\perp$}{$x_{32}$}
+
+  \roI[style=frame](0,0)(1,1){$\perp$}{$x_{30}$}
+   \roI[style=query](1,0)(4,1){\tiny{$\{S\}$}}{$x_{31}$}
+   \roI[style=query](4,0)(5,1){$\perp$}{$x_{32}$}
+  \end{FramePic}
+}
+\subfigure[output]{
+  \begin{FramePic}[5,5]
+  \roI[style=frame](0,4)(5,5){$\perp$}{$x_{00}$}
+
+  \roI[style=frame](0,3)(2,4){$\perp$}{$x_{10}$}
+   \roI[style=query](2,3)(5,4){\tiny{$\{T\}$}}{$x_{11}$}
+
+  \roI[style=frame](0,2)(2,3){$\perp$}{$x_{20}$}
+  \roI[style=frame](2,2)(5,3){\tiny{$\{T\}$}}{$x_{21}$}
+
+  \roI[style=frame](0,1)(2,2){$\perp$}{$x_{30}$}
+  \roI[style=frame](2,1)(5,2){\tiny{$\{T\}$}}{$x_{31}$}
+
+  \roI[style=frame](0,0)(5,1){$\perp$}{$x_{30}$}
+  \end{FramePic}
+}
+  \caption{}
+  \label{fig:multi}
+\end{figure} 
+
+%% Since we have assumed the the input chunks are in rows, we can define
+%% the above formulation in images algebra terms as follows, where $X$ is
+%% an input image:
+
+%% \begin{align}
+%% x = & (x_0|x_1|x_2|\ldots|x_n)^T \\
+%% x = & \left( \begin{array}{c}
+%%     x_0 \\
+%%     \hline
+%%     x_1 \\
+%%     \hline
+%%     \ldots \\
+%%     \hline
+%%     x_n
+%%   \end{array}\right)
+%%   &\text{where for each} x_i \\
+%% x_i = & (x_{i0}|x_{i1}|x_{i2}|\ldots|x_{im})
+%% \end{align}
+
+%% That is, each image can be divided into a number of row chunks, each
+%% of which can be divided into a number of different column chunks.  If
+%% we define $X_q$ as the set of $x_{ij}$ chunks which satisfy query $q$,
+%% then the resultant image for query $q$ is composed with the equation.
+
+%% \begin{align*}
+%% x_q =& (q_0|q_1|q_2|\ldots|q_n)^T \\
+%% &\text{where for each } q_i \\
+%% q_i =& (x_{ij}|x_{i,j+1}|x_{i,j+2}|\ldots|x_{i,j+k}), x_{ij} \in Q
+%% \end{align*}
+
+For example, Figure~\ref{fig:multi}b shows image $S$ chunks
+resulting from the input queries.  For example, point set $R$ can be
+composed with,
+
+\begin{equation}
+S = \left| \begin{array}{c}
+    (x_{21}|x_{22}) \\ 
+    \hline 
+    (x_{31}|x_{32}) \\ 
+    \hline
+    x_{41}
+  \end{array}
+\right|
+\end{equation}
+
+However, we can again take advantage of the fact that the input stream
+is in row scan order.  If we maintain the current state of query
+intersections for the input geostream, then when a new input chunk
+comes in we need only check if the new row(s) are entering or exiting
+a query point set.  If not, we rechunk as before, otherwise we update
+our rechunking boundaries, by adding or removing the new query.  The
+state that we maintain for the current row is a sorted list of the
+x-values for each rechunk boundary, and the set of queries that each
+new chunk satisfies.
+
+To support this we only need to maintain an in-order list of the
+y-values for each query point sets maximum and minimum.  There is a
+small problem with this arrangement.  All geostreams are in row scan
+order, but not necessarily starting from the maximum y value.  If a
+new geostream arrives at a lower value, then we would need to start
+from the top and build the starting set of x-values.  In practice, we
+will use a skip list~\cite{pugh90skip} to maintain our y-values, and
+will keep track of starting x-value sets, for the top few levels in
+our list.  This will allow use to find the nearest maintained x-value
+set and work forwards or backwards from there for the first row in any
+new geostream.
+
+\subsection{Spatial transformations}
+
+As described above, spatial transformations map images from one point
+set to another.  The transfer function, $f$, is a mapping from $\ps{Y}
+\rightarrow \ps{X}$, and $\im{a} \circ f = \{(y,a(f(y)): y \in \ps{Y}
+\}$.  Figure~\ref{fig:transform} shows an example of a transform from
+one point set to another.  In the general case, the function $f$, does
+not have an inverse.  In these cases, there is no way to 
+
+\psset{unit=4.0}
+\begin{figure}[htbp]
+  \centering
+    \begin{FramePic}[2,2]
+      \SpecialCoor
+      \psline[origin={0,-1.5}](1.0;-45)(1.8;-45)
+      \psline[origin={0,-1.5}](1.0;-22.5)(1.8;-22.5)
+      \psline[origin={0,-1.5}](1.0;0)(1.8;0)
+      \psdots[origin={0,-1.5},dotstyle=x,dotscale=3](1.2;-11.25)(1.6;-11.25)(1.2;-33.75)(1.6;-33.75)
+      \psarc(0,1.5){1.0}{-45}{0}
+      \psarc(0,1.5){1.4}{-45}{0}
+      \psarc(0,1.5){1.8}{-45}{0}
+ \end{FramePic}
+ \caption{Spatial transformation}
+ \label{fig:transform}
+\end{figure} 
+
+
+\section{Query processing}
+\label{sec:cost}
+
+Optimizing streaming databases has many similarities with methods for
+optimizing for multi-queries in traditional databases,
+\cite{sellis90multip-query,other:87}, and appropriate notation is appropriated
+from these studies.  Traditional multi-query optimize over the total
+cost of each query.  We follow a different model, we optimize over the
+total cost for a tuple, (or for pixels as is shown below).  As it
+travels through the database.  In addition, we will minimize the
+``Time in flight'' for a tuple, which we define as the total time and
+size a tuple spends in the database.  
+
+%% What about a chunk cost model.  In this case you sort of invert the
+%% cost model paradigm, and determine the cost per tuple, as opposed to
+%% trying to specify the cost of a query.  You can do this statistically,
+%% by using the selectivity of the individual parts.  You can either
+%% guess this, or measure it.  The tuple cost can be expressed as in
+%% time*size, that is how long a tuple needs to travel through the
+%% system.  We can amortize the size of index structures over the number
+%% of tuples that we expect to see come thru this thing.  How about we
+%% use an idea like the eddy model, but we setup all the possible query
+%% paths, and time the first steps, in which case we can then 
+
+In abstract formulations of the image algebra expressions point sets
+are simply sets of points.  However when we make our cost estimations
+below, we assume additional features about the point sets, for example,
+that the pixels from images with the same point set will arrive in the
+same order, in particular when necessary, we assume that the pixels
+are delivered in row scan order.  We also assume that when images
+arrive, multiple pixels arrive in chunks.  These chunks are generally
+larger than a single pixel, but they do not need to be.  When
+developing cost models, we will sometimes use the number of chunks in
+an image as a cost estimator.
+
+\psset{unit=0.2}
+\begin{figure}[htbp]
+   \centering
+     \begin{FramePic}[15,15]
+    \roi[style=query](0,0)(15,15){$Q$}
+    \roi[style=query](10,10)(13,13){$R$}
+    \roi[style=query](10.5,10.5)(11,11){$S$}
+  \end{FramePic}
+  \caption{%
+    Three queries on \im{a} all returning the same sized image.  Query
+    $Q$ is a summary of the entire image $Q=\im{a} \circ m_{n_a}$. $R$
+    is a query rstricted to a rectangular subset of size $n \times m$.
+    subset of the image and this image is further reduced to a $500^2$
+    image, $R=\im{a}|_{\ps{3K}} \circ f$.  Finally, $S$ is a $n \times
+    m$ region within the scene, $S=a|_{\ps{S}}$}
+\end{figure}
+
+One method of optimization would be to simply optimize each of the
+above queries separately.  Queries, $Q$, and $S$, each have only one
+operand and so cannot be rewritten.  Query $R$, however, has two
+potential strategies:
+
+\mbox{\lnd{$Q$} \psrnd{3K} \gtnd{NB_{6}} \branch{1}{\im{a}} \tree}
+\quad
+\mbox{\lnd{$Q$} \gtnd{NB_{6}} \psrnd{3K} \branch{1}{\im{a}}\tree}
+
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure[$(\im{a}||_{>th})|^{0\RPSnxD}$]{
+\lnd{\im{a}} \vsrnd{>th} \extnd{0\RPSnxD}
+\tree}
+  \subfigure[$(\im{a}|_{0\RPSnxD}||_{>th})|^{0\RPSnxD}$]{
+\lnd{\im{a}} \psrnd{0\RPSnxD} \vsrnd{>th} \extnd{0\RPSnxD}
+  \tree    }
+\end{figure}
+
+
+Figure~\ref{fig:cost} demonstrates this cost model.  Imagine a
+database, which holds the following queries on a geostream \im{a}.
+
+\begin{align}
+  Q_1 &: \im{a}|_{\RPSnx{\pt{n_1}}{\pt{x_1}}} \\
+  Q_2 &: \im{a}|_{\RPSnx{\pt{n_2}}{\pt{x_2}}}
+\end{align}
+
+If the region of $Q_2$ is completely contained in the region of $Q_1$,
+two potential query plans are shown.  As was discussed above, the
+regularity of the point sets for images allow for restrictions to be
+done in constant time, so the cost in figure (a) is
+$2t_{|}||\im{a}||$, while the cost in figure (b) is
+$t_{|}(||\im{a}||+||Q_1||)$.  This is very similar to multi-query
+optimizations finding sub expressions to optimize queries.  Just like
+we have a->b, we can have the same thing for images.  Basically, their
+X=>F need to match, and the point set of one needs to be subset of the
+point set of the other.  Any time one is a restriction of another, then
+that's good enough.
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure[No optimizations]{
+\lnd{Q_1} \psrnd{ \RPSnx{\pt{n_1}}{\pt{x_1}} } 
+\lnd{Q_2} \psrnd{ \RPSnx{\pt{n_2}}{\pt{x_2}} } \branch{2}{\im{a}}
+\tree}
+  \subfigure[Common image chunks]{
+\lnd{Q_2} \psrnd    { \RPSnx{\pt{n_2}}{\pt{x_2}} } 
+\lnd{Q_1} \branch{2}{ $\RPSnx{\pt{n_1}}{\pt{x_1}}$ } 
+\branch{1}{\im{a}}
+  \tree    }
+  \subfigure[Grouped Filters]{
+\lnd{Q_2} \lnd{Q_1} 
+\branch{2}{ $\RPSnx{\pt{n_1}}{\pt{x_1}},\RPSnx{\pt{n_2}}{\pt{x_2}}$ } 
+\branch{1}{\im{a}}
+\label{subfig:gf}
+  \tree    }
+  \caption{Cost Models}
+  \label{fig:cost}
+\end{figure}
+
+For streaming databases, the notion of group filters~\cite{madden},
+has also been shown to ba advantageous.  Very simply, grouped filters
+allow for a single task to route a tuple to many different queries.
+Combined in some systems with tuple level bookkeeping, this allows for
+tuples to be marked with all the queries that it satisfies.  For
+images, a similar idea may be used, where chunks of the image may
+satisfy multiple queries.  These types of chunked filters have an
+obvious extension from the multi-query optimizations using
+sub-expressions.  The idea here is that you can use a grouped filter
+operation, as if it were a common sub-expression for all queries that
+it satisfies.  In addition, since chunks are marked as satisfying
+multiple queries, the total size of the image stream can be reduced as
+well.  Figure~\ref{fig:cost}\ref{subfig:gf} shows the same query using
+a grouped filter.  Here, the total cost is $C_{gf} \approx t_{|}(||\im{a}||)$.
+It should be noted that this formulation may lead to higher costs
+associated with composing the chunks back to their respective query
+images.  We had better take this into account.
+
+The above discussion neglects the size of the ancillary data
+structures in the cost model formulation.  Clearly, there are costs
+involved both in building data structures to allow for grouped filters
+to work effectively for a number of queries.  If these structures grow
+large, their costs need to be taken into account as well.  There are
+two methods to deal with this cost.  One method is to amortize the
+size of the data structure over all the data chunks which benefit from
+using the structure.  This has the advantage of minimizing the cost of
+the structures for any individual data chunk.  We will follow this
+route.  It is important to remember however, that for any individual
+chunk, the entire structure is required, and so it is sometime useful
+to look at the cost of these ancillary data structures in relation to
+a single data chunk as well.
+
+Section~\ref{sec:cookie} describes how a single task can be used to
+perform multiple rectangular selections on streaming images.  A simple
+pick list that is of $O(q)$, where $q$ is the total number of queries
+is used to index the requested queries.
+
+Using grouped filters as pseudo common subexpressions has effect of
+increasing the total number of shared tasks between multiple queries.
+This in turn can {\bf decrease ??} the search space of query plans
+that attempt to exhaustively search for the best query plan.  Also,
+grouped filters don't require determining sub-expressions in the
+planning stage.
+
+%% \subsection{Joining regions}
+
+%% There are a number of ways that the user would like to intersect two
+%% regions together. Typically, we are describing the methods of using a
+%% region in a query to extract a region from an image.  Three methods
+%% are shown below.  Each figure shows one region
+%% $Q=\RPSnx{(5,5)}{(8,8)}$, intersecting three query point sets,
+%% $q=\RPSnx{(1,1)}{(9,9)}, r=\RPSnx{(2,2)}{(7,7)},
+%% s=\RPSnx{(3,3)}{(9,4)}$.  Figure~\ref{fig:restriction}a shows a domain
+%% restriction query.  Here, all the points that are in both the query
+%% region and the image region.  One interesting aspect is that the even
+%% images with no overlap return results.  This is a feature, in fact,
+%% the user may be very interested in images that do not have any
+%% overlap.  Figure~\ref{fig:subset} only responds with images that
+%% completely overlap, the region of interest, by including a subset test
+%% on the point sets.
+
+%% %\psset{unit=0.25}
+%% \begin{figure}[htbp]
+%%   \centering
+%%   \subfigure[input]{
+%%     \begin{FramePic}[10,10]
+%%    \roi[style=query](5,5)(8,8){$Q$}
+%%    \roi[style=frame](1,1)(9,9){$q$}
+%%    \roi[style=frame](2,2)(7,7){$r$}
+%%    \roi[style=frame](3,3)(9,4){$s$}
+%%  \end{FramePic}
+%% }
+%% \subfigure[$q|_Q$]{
+%%   \begin{FramePic}[10,10]
+%%    \roi[style=overlap](5,5)(8,8){$q|_Q$}
+%%  \end{FramePic}
+%% }
+
+%% \subfigure[$r|_Q$]{
+%%  \begin{FramePic}[10,10]
+%%    \roi[style=overlap](5,5)(7,7){$r|_Q$}
+%%  \end{FramePic}  
+%% }
+%% \subfigure[$t|_Q$]{
+%%    \begin{FramePic}[10,10]
+%%    \roi[style=overlap](5,5)(5,5){$t|_Q$}
+%%  \end{FramePic}
+%% }
+%%   \caption{Select g.id,$g.i|_Q$ from $g$}
+%%   \label{fig:restriction}
+%% \end{figure} 
+
+%% \begin{figure}[htbp]
+%%   \centering
+%%   \subfigure[input]{
+%%     \begin{FramePic}[10,10]
+%%    \roi[style=query](5,5)(8,8){$Q$}
+%%    \roi[style=frame](1,1)(9,9){$q$}
+%%    \roi[style=frame](2,2)(7,7){$r$}
+%%    \roi[style=frame](3,3)(9,4){$s$}
+%%  \end{FramePic}
+%% }
+%% \subfigure[$q|_Q$]{
+%%   \begin{FramePic}[10,10]
+%%    \roi[style=overlap](5,5)(8,8){$q|_Q$}
+%%  \end{FramePic}
+%% }
+%%   \caption{}
+%%   \label{fig:subset}
+%% \end{figure} 
+
+
+%% Figure~\ref{fig:extension} shows how a user would use image extension to
+%% verify each returned image has the same point set.  In this example,
+%% $\Bbb{O}$ is taken as an image that covers all of $\Z{2}$, with a
+%% value of 0 for all points.  Unlike the domain restrictions, the
+%% extension of a point set onto $\Bbb{O}|_Q$, will always return an
+%% image with point set $Q$.  This is an important modification because
+%% only images that share a common point set can be combined to form a new
+%% dimension.  For example, \emph{Select g.id,$g.i|_Q|^{\Bbb{O}|_Q}$ from
+%%   $g$} would return a set of images with the same point set, whereas
+%% \emph{Select g.id,$compose(g.i|_Q|^{\Bbb{O}|_Q})$ from $g$}, would
+%% return a new image with an additional dimension.  Where,
+%% $compose(x_1,x_2,\ldots,x_n)$ joins $n$ $k$ dimensional images with a
+%% common point set, into a $k+1$ dimensional image.
+
+%% \emph{ That's not very good notation, and there is an interesting
+%%   point here.  In most SQL statements we have the notion of
+%%   aggregation functions, where as in streaming databases, what we
+%%   really want to stream are accumulation functions.  We should make a
+%%   note that this is something that we need to study in more detail.}
+
+%% \begin{figure}[htbp]
+%%   \centering
+%%   \subfigure[input]{
+%%     \begin{FramePic}[10,10]
+%%    \roi[style=query](5,5)(8,8){$Q$}
+%%    \roi[style=frame](1,1)(9,9){$q$}
+%%    \roi[style=frame](2,2)(7,7){$r$}
+%%    \roi[style=frame](3,3)(9,4){$s$}
+%%  \end{FramePic}
+%% }
+%% \subfigure[$q|_Q$]{
+%%   \begin{FramePic}[10,10]
+%%    \roi[style=overlap](5,5)(8,8){$q|_Q$}
+%%  \end{FramePic}
+%% }
+
+%% \subfigure[$r|_Q$]{
+%%  \begin{FramePic}[10,10]
+%%    \roi[fillstyle=solid,fillcolor=lightgray](5,5)(8,8){$Q$}
+%%    \roi[style=overlap](5,5)(7,7){$r|_Q$}
+%%  \end{FramePic}  
+%% }
+%% \subfigure[$t|_Q$]{
+%%    \begin{FramePic}[10,10]
+%%    \roi[fillstyle=solid,fillcolor=lightgray](5,5)(8,8){$Q$}
+%%    \roi[style=overlap](5,5)(5,5){$t|_Q$}
+%%  \end{FramePic}
+%% }
+%%   \caption{Select g.id,$i|_Q|^{\Bbb{0}|_Q}$ from $g$}
+%%   \label{fig:extension}
+%% \end{figure} 
+
+\section{Testbed and Results}\label{sec:testbed}
+
+Our initial testbed application will allow multiple users to connect
+to a server to receive real-time weather satellite imagery.  We plan
+to use a framework based on the OpenGIS Web Map Server specification.
+This simple interface does not allow for a sophisticated set of user
+queries; but it does investigate the most basic requirement of serving
+many spatial restrictions and geometric transformations to many
+clients.
+
+The weather imagery comes from the National Oceanic and Atmospheric
+Administration's (NOAA's) Geostationary Operational Environmental
+Satellite (GOES) satellite~\cite{noaa-goes}.  All data from the GOES
+satellite is transferred via the GVAR data stream, a format specific
+to NOAA GOES instruments.  Figure~\ref{fig:gvar} shows the GVAR data
+stream.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[width=8cm]{../gvar.eps}
+    \caption{GOES GVAR data stream}
+    \label{fig:gvar}
+  \end{center}
+\end{figure}
+
+The GVAR stream is a continuous data stream transmitting at
+approximately 2.1 Mb/sec.  It has two instruments, the imager and
+sounder, which have 5 and 19 spectral channels respectively.  The
+imager scans various sections of the earth's surface, North to South,
+about once every fifteen minutes in continuous frames.  A frame varies
+in size from about 100MB to 400MB, depending on the size of the region
+scanned.  The footprint of an imager pixel varies between spectral
+channels.
+
+Individual frames are made up of a large number of scans which are
+narrow swathes of data corresponding to the physical sweep of the
+instrument sensors from East to West.  The scans themselves are made
+up of blocks of data which are the atomic unit of transfer from the
+satellite to the receivers.  Blocks contain from 32K to 229K bits of
+data, depending on the width of the scan.  Documentation blocks
+includes operational parameters such as the current location of the
+satellite, the current frame and scan, parameters for each instrument,
+and additional information for each spectral channel.  The imagery is
+transmitted in row scan order.
+
+%% \begin{verbatim}
+%% Material View of a Stream
+%% - Why format is better method than API
+%% - Why MNG
+%% -- Streaming
+%% -- Simple
+%% -- existing applications
+
+%% - Problems with the MNG format
+%% -- Potential improvements
+%% \end{verbatim}
+
+%% The GeoStream format is currently too simple.  It is not able to
+%% described relationships between image streams, nor can it accept
+%% non-homogeneous data within the stream.  These are significant
+%% limitations for streaming data such as satellite imagery.  For
+%% example, the GOES satellite, besides the imager data stream described
+%% above, also has an additional instrument, the sounder.  This data
+%% stream has many more channels that are more closely organized than the
+%% imager data.  We are working to develop a geostream model that can
+%% carry all this information in a single stream.
+
+\section{Conclusions}
+
+Need some
+
+\bibliographystyle{plain}
+\bibliography{geostreams}
+
+\end{document}
+
+

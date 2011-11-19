@@ -1,0 +1,173 @@
+=head1 NAME
+
+geostreamd - GeoStreams Daemon
+
+=head1 SYNOPSIS
+
+  geostreamd [-v] [-d] -f I<conf-file>
+
+=head1 DESCRIPTION
+
+B<geostreamd> is designed to be a simple, high speed Internet web server,
+primarily for simple HEAD and GET requests.
+
+B<geostreamd> is a single tasking, event-based server.  Some of it's features
+include: libevent based multi-client support, mostly static memory
+allocation, file caching and memory writes or zero-copy file transfers
+using C<sendfile>, B<TCP_CORK>'ed sockets, and opaque structures for
+all major objects I<server>, I<client>, I<request> and I<buffer>.
+
+The basic idea is that on initialization, a fixed number of clients
+are allocated, this is the maximum number of clients that the server
+will use.  The clients have pointers for maintaining a linked-list,
+state parameters and each have a request structure preallocated.  An
+event based system using I<libevent> adds the server I<fd> to a list
+of fds to be monitored for I/O events. When clients connect, the
+server C<accept>s new client, and serves the request.  The request can
+be served in either an event or threaded stuyle.  For the event style,
+the client I<fd> is added to the list of I<fd>'s to be monitored.  For
+the threaded request style a new thread is created for each client.
+Within each thread, the client I/O is handled serially, using blocking
+I/O.
+
+Under event style requests, on read requests from any fd the
+corresponding client is found, input read in B<O_NONBLOCK> mode, and
+the request buffer is scanned for a complete request.  If a complete
+request is found, that request is parsed and a response is started.
+Based on the request type, appropriate headers are returned.  On a
+B<GET> request, the corresponding local file is found, and sent to the
+client.  There are two styles of writing the local file, again event
+and thread based.  These are only available when using event based
+request services.  For event writes, the a new file descriptor is
+opened, and I/O events are added to the event handler.  On signal, the
+file contents are sent to the client.  The thread based write style
+sends the file in a new thread.  After responding the client either
+reads a new request or closes based on the I<Connection> attribute of
+the request.
+
+GEOSTREAMD also includes a file cache for frequently accessed data files.
+Files in the cache are mapped into core memory.  While taking more
+time for the first request, additional requests can be served from
+memory directly.  When the cache is full, the server reverts back to
+sendfile to serve the request.  The size of the cache is configurable.
+
+As strictly a testing environment, the server is not very robust on a
+number of issues; including not true HTTP/1.1 compliance, a loose
+interpretation of the request parsing, and very limited configuration
+options.  
+
+B<geostreamd> is run by a normal user, and no uid switching takes
+place.
+
+=head2 OPTIONS
+
+=over
+
+=item -v, --verbose
+
+Log all C<syslog> calls to stderr as well.  This can really seem to
+slow down the server.
+
+=item -d, --debug
+
+Include debugging messages to syslog.
+
+=back
+
+=head2 CONFIG FILE
+
+=over
+
+=item Port I<n>
+
+Use port I<n> instead of default port, 6666.
+
+=item MaxClients I<num>
+
+Allow up to I<num> simultaneous clients to the server.  If you would
+really like add a lot of clients, you may have to increase the number
+of file descriptors.  On 2.4 kernels, this is done with 
+
+ > echo 32768 > /proc/sys/fs/file-max # for the system limit, and
+ > ulimit -n 32768                    # for current process's limit
+
+=item DocumentRoot I</var/www>
+
+Default root for web server.  All GET requests, are simply the URL
+path, stripped of query and fragments, prepended with this directory.
+
+=item LocalFacility 0
+
+http access are logged using standard syslog.  By default, logging
+goes to the I<USER> facility, but can be redirected to any of the
+I<LOCAL[0-7]> facilities using the C<LocalFacility> option.  Http
+access are use
+
+ # /etc/syslog.conf
+ # Setup of GEOSTREAMD logging
+ local0.notice			-/var/log/geostreamd_access.log
+ local0.*			-/var/log/geostreamd.log
+
+=item RequestStyle Events|Threads
+
+This specifies how new requests are handled.  If Events is selected,
+then the new request I/O events are added into the event queue.  These
+events are handled in the order libevent schedules the callbacks.
+With the Thread event style, each new client is handled with blocking
+I/O, but within seperate thread for each client.
+
+=item WriteStyle Events|Threads
+
+If the RequestStyle Events is selected, the write style of each
+request can still be specified as either event or threds.  The Event
+write style uses non-blocking I/O calls and adds file write events to
+the global event handler.  Threaded write style uses blocking writes
+in a seperate thread instead.
+
+=item CacheSize I<n>
+
+Specify the size of the cache in bytes.  This specifies the maximum
+size of the file cache to use with the server.  By specifing a
+CacheSize of 0, the server does not use any cache.
+
+=back
+
+=head1 BUGS
+
+B<POST> currently doesn't work.
+
+A ton of time was spent working on circular buffers for the file
+transfer and not used, choosing sendfile instead.  Some stuff like the
+goofy C<buffer_printf> might not even work.  Circular request buffers
+would be handy for big B<POST>s, but the inclination now is to replace
+the that semi complicated mess with a simpler dynamic C<realloc>ing
+buffer.  Large buffers could be saved in look-aside buffer as
+suggested in [2].
+
+Many things could break the request handler; including big requests.
+Even lots of little ones pipelined, which is okay according to
+HTTP/1.1 would bust it.  Also, multi-line RFC headers are not
+supported.  If we simplified the above buffer, we could use them here
+as well.
+
+=head1 SEE ALSO
+
+The authors are indebted to the mathopd [1] http server for providing
+valuable examples of implementing a poll-based server.  We based some
+of the basic design principles on this model.
+
+[1] L<http://www.mathopd.org/>
+
+[2] L<http://pl.atyp.us/content/tech/servers.html>
+
+[3] L<http://www.monkey.org/~provos/libevent/>
+
+[4] L<http://www.kegal.com/c10k>
+
+[5] L<http://www.ecst.csuchico.edu/~beej/guide/ipc/mmap.html>
+
+=head1 AUTHOR
+
+Quinn Hart qjhart@ucdavis.edu
+
+

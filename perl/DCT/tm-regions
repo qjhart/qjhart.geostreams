@@ -1,0 +1,179 @@
+#! /usr/bin/perl -w
+
+use 5.008003;
+use strict qw ( vars );
+use warnings;
+
+package RegionMaker;
+use Region;
+use strict 'vars';
+use fields qw( bbox seq del total_area );
+
+sub new {
+	my $r = shift;
+	my %p=@_;
+	unless (ref $r) {
+    $r = fields::new($r);
+  }
+  grep ($r->{$_}=$p{$_},keys %p);
+  $r->{seq}=0;
+  my ($w,$s,$e,$n) = @{ $r->{bbox} };
+  $r->{del} = [($e-$w),($n-$s)];
+  $r->{total_area} = $r->{del}[0]*$r->{del}[1];
+  $r;
+}
+
+#Helper function randomly picks a point in region
+sub rand {
+  my $r=shift;
+  my $bbox=shift || $r->{bbox};
+  my ($w,$s,$e,$n)=@{ $bbox };
+  [$w + int(rand($e-$w)),$s + int(rand($n-$s))];
+}
+
+sub has {
+  my $r=shift;
+  my ($x,$y)=@{ shift() };
+  my ($w,$s,$e,$n)= @{ $r->{bbox} };
+  ($w <= $x and $s <= $y and $e >= $x and $n >= $y);
+}
+
+sub newRegion {
+  my $self= shift;
+  die sprintf "Method newRegion not re-implemented for %s",ref($self);
+}
+
+# Pass in a min,Max for Area and Aspect, 
+# Will use Uniform distribtions of items.
+package TMRegions;
+use base RegionMaker;
+use fields qw(aspect area );
+
+sub new {
+  my $r= shift->SUPER::new(@_);
+  $r->{area} ||= [0,1];
+  $r->{aspect} ||= [0.5,2];
+  $r;  
+}
+
+sub newRegion {
+  my $r=shift;
+  my ($x,$y) = @_;
+
+  my $aspect=$r->{aspect}[0] + rand $r->{aspect}[1]-$r->{aspect}[0];
+  my $area=($r->{area}[0] + rand($r->{area}[1]-$r->{area}[0]));
+
+  my ($dx,$dy)= (sqrt($area*$aspect),sqrt($area/$aspect));
+  $dx /= cos(atan2(1,1)*$y/45);
+
+  return new Region bbox=>[$x-$dx/2,$y-$dy/2,$x+$dx/2,$y+$dy/2],id=>$r->{seq}++;
+}
+
+package main;
+use Getopt::Simple;
+
+my($options) =
+  {
+   'count' =>
+   {
+	'type'          => '=i',
+	'default'       => '10',
+	'verbose'       => 'Number to output',
+	'order'         => 1,
+   },
+   'prob' =>
+   {
+	'type'          => '=s',
+	'default'       => '-',
+	'verbose'       => 'Probability Distribution File',
+	'order'         => 2,
+   },
+   'area' =>
+   {
+	'type'          => '=s',
+	'default'       => '0.0713,7.13',
+	'verbose'       => 'Uniform Area Bounds (in degrees^2 at equator)',
+	'order'         => 3,
+   },
+   'aspect' =>
+   {
+	'type'          => '=s',
+	'default'        => '0.5,2',
+	'verbose'        => 'Uniform Aspect Bounds',
+	'order'         => 4,
+   },
+   'vect' =>
+   {
+	'type'          => '!',
+	'default'        => '1',
+	'verbose'        => 'Vector Output',
+	'order'         => 4,
+   },
+  };
+
+my ($option) = new Getopt::Simple;
+if (! $option -> getOptions($options, "Usage: tm-regions --count=max --dist-file=file --type=(walk|boxes)") )
+  {
+	exit(-1);       # Failure.
+  }
+
+
+my $tm= new TMRegions(bbox=>[-180,-90,180,90],
+					  aspect=>[split(/,/,$option->{switch}{aspect})],
+					  area=>[split(/,/,$option->{switch}{aspect})]);
+
+open(PROB,"<$option->{switch}{prob}") or die "Bad PROB file";
+my @prob = grep(chomp,<PROB>);
+close PROB;
+
+
+my $size = sqrt(180*360/$#prob);
+my $pnum=$#prob;
+my $max = $prob[-1];
+
+if ($option->{switch}{vect}) {
+  print <<HEADER;
+ORGANIZATION: GeoStreams
+DIGIT DATE:   07/2004
+DIGIT NAME:   Quinn Hart
+MAP NAME:     TM-REGIONS
+MAP DATE:
+MAP SCALE:    1
+OTHER INFO:
+ZONE:         0
+WEST EDGE:    -180
+EAST EDGE:    180
+SOUTH EDGE:   -90
+NORTH EDGE:   90
+MAP THRESH:   0
+VERTI:
+HEADER
+  1;
+}
+
+foreach (1..$option->{switch}{count}) {
+  my ($i,$d);
+  my $rand = rand $max;
+  # BINARY SEARCH
+  for(($i,$d)=(int($pnum/2),int($pnum/4));1;$d=int($d/2+0.5)) {
+	#print "$i $prob[$i] $rand\n";
+	if ($prob[$i] < $rand) {
+	  last if $prob[$i+1] > $rand;
+	  $i += $d;
+	} else {
+	  $i -= $d;
+	}
+  }
+  # UL corner of size x size grig of region
+  my $lon = -180 + $size*($i % (360/$size)) + rand($size);
+  my $lat = 90 - $size*int($i/(360/$size)) - rand($size);
+  my $r=$tm->newRegion($lon,$lat);
+  my ($e,$s,$w,$n)=@{ $r->{bbox} };
+  if ($option->{switch}{vect}) {
+#	printf "A 5\n %f\t%f\n %f\t%f\n %f\t%f\n %f\t%f\n %f\t%f\n",$e,$s,$e,$n,$w,$n,$w,$s,$e,$s;
+	printf "A 5\n %f\t%f\n %f\t%f\n %f\t%f\n %f\t%f\n %f\t%f\n",$s,$e,$n,$e,$n,$w,$s,$w,$s,$e;
+  } else {
+	printf "%.3f|%.3f|#$_\n",$lon,$lat;
+  }
+}
+

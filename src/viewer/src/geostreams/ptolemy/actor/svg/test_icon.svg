@@ -1,0 +1,11 @@
+<svg>
+<rect x="-16" y="-16"
+ width="30" height="20"
+ style="fill:0xffffcc;stroke-width:1"
+/>
+<text x="-20" y="-2"
+ style="font-size:12; fill:black; font-family:SansSerif">
+  {name}
+</text>
+</svg>
+

@@ -1,0 +1,79 @@
+\begin{thebibliography}{10}
+
+\bibitem{babcoc02model-issues}
+B.~Babcock, S.~Babu, M.~Datar, R.~Motwani, and J.~Widom:.
+\newblock Models and issues in data stream systems.
+\newblock In {\em Proc.~of the 21st 
+  Symposium on Principles of Database Systems}, 1--16, 2002.
+
+\vspace{-.5ex}
+\bibitem{carney02monit-stream}
+D.~Carney, U.~Cetintemel, M.~Cherniack, C.~Convey, S.~Lee, G.~Seidman,
+  M.~Stonebraker, N.~Tatbul, and S.~Zdonik.
+\newblock Monitoring streams - a new class of data management applications.
+\newblock In {\em Proc. of the 28th International Conference on Very Large Data
+  Bases}, 215--226, 2002.
+
+\vspace{-.5ex}
+\bibitem{berg00comput-geomet}
+M.~de\ Berg, M.~van Kreveld, M.~Overmars, and O.~Schwarzkopf.
+\newblock {\em Computational Geometry: Algorithms and Applications}.
+\newblock Springer, 2000.
+
+\vspace{-.5ex}
+\bibitem{guttm84r-tree}
+A.~Guttman.
+\newblock R-trees: a dynamic index structure for spatial searching.
+\newblock In {\em In Proc. ACM SIGMOD Int. Conf. on Management of Data},
+  47--57, 1984.
+
+\vspace{-.5ex}
+\bibitem{heller00adapt-query}
+J.~M. Hellerstein, M.~J. Franklin, S.~Chandrasekaran, A.~Deshpande, K.~Hildrum,
+  S.~Madden, V.~Raman, and M.~A. Shah.
+\newblock Adaptive query processing: Technology in evolution.
+\newblock {\em IEEE Data Engineering Bulletin}, 23(2):7--18, 2000.
+
+\vspace{-.5ex}
+\bibitem{manol03r-have}
+Y.~Manolopoulos, A.~Nanopoulos, A.~N. Papadopoulos, Y.~Theodoridis.
+\newblock R-trees have grown everywhere.
+\newblock Unpublished Techn.~Report, 2003.
+
+\vspace{-.5ex}
+\bibitem{pugh90skip}
+W.~Pugh.
+\newblock Skip lists: A probilistic alternative to balanced trees.
+\newblock {\em Communications of the ACM}, 33(6):668--676, June 1990.
+
+\vspace{-.5ex}
+\bibitem{ritter99image-algeb}
+G.~X. Ritter.
+\newblock Image algebra, \\ www.cise.ufl.edu/$\sim$jnw/AI, 1999.
+
+\vspace{-.5ex}
+\bibitem{sellis87r-tree}
+T.~K. Sellis, N.~Roussopoulos, C.~Faloutsos.
+\newblock The R+-tree: A dynamic index for multi-dimensional objects.
+\newblock In {Proc.~of 13th Int.~Conf.~on Very Large Data Bases}, 507--518, 1987.
+
+\vspace{-.5ex}
+\bibitem{krevel88concat-segmen}
+M.~J. van Kreveld and M.~K. Overmars.
+\newblock Concatenable segment trees.
+\newblock Technical report, Rijksuniversiteit Utrecht, 1988.
+
+\vspace{-.5ex}
+\bibitem{wilson01handb-comput}
+J.~N. Wilson and G.~X. Ritter.
+\newblock {\em Handbook of Computer Vision -- Algorithms in Image Algebra}.
+\newblock CRC Press, 2nd edition, 2001.
+
+\vspace{-.5ex}
+\bibitem{zhang03locat}
+J.~Zhang, M.~Zhu, D.~Papadias, Y.~Tao, and D.~L. Lee.
+\newblock Location-based spatial queries.
+\newblock In {\em Proc.~of the 2003 ACM SIGMOD International Conference
+  on Management of Data}, 443--454, 2003.
+
+\end{thebibliography}

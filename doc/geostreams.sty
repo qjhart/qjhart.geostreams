@@ -1,0 +1,160 @@
+\usepackage{amsmath}
+%\usepackage{pxfonts}
+\usepackage{amssymb}
+% For Grid pictures
+\usepackage{pstcol}
+\usepackage{pst-plot}
+\usepackage{fancybox}
+\cornersize{1}
+\usepackage{subfigure}
+\input{qobitree}
+
+%% This is the strategy we will use for naming commands in the geostream
+%% package.  Any object, like an image, pointset, etc., is named with a
+%% two letter designation, both lower case.  They should all be in this
+%% section They should be able to be used anywhere.
+
+\newcommand{\gs}[1]{{\ensuremath{\bf{#1}}}} %Geostream
+
+
+\newcommand{\pt}[1]{{\ensuremath{\bf{#1}}}} % Point
+\newcommand{\ps}[1]{{\ensuremath{\bf{#1}}}} % Point set
+\newcommand{\im}[1]{{\ensuremath{\bf{#1}}}} % image
+\newcommand{\ir}[1]{{\ensuremath{\textrm{#1}}}} % Image Relation
+\newcommand{\vs}[1]{{\ensuremath{\mathbb{#1}}}} % Value Set
+
+\newcommand{\card}[1]{{\ensuremath{card(#1)}}} % cardinality of the set.
+
+\newcommand{\imType}[2]{\vs{#1}^{\ps{#2}}}
+\newcommand{\op}[1]{\ensuremath{\mathbb{#1}}} %operator
+
+%% These specials are special pointset designations. 
+%% They only work in math mode.  RPS means Rectangular Point Set.
+\newcommand{\RPSnxD}{\RPSnx{n}{x}} %Default, use n,x as values
+%% Specify the Minumum and maximum points
+%\newcommand{\RPSnx}[2]{\llcorner\pt{#1}^{\;\;\pt{#2}}\urcorner}
+\newcommand{\RPSnx}[2]{\lfloor_{\pt{#1}}^{\;\;\pt{#2}}\rceil} 
+%% Specify the minimum and delta
+%\newcommand{\RPSnd}[2]{\llcorner\pt{#1}^{+\pt{#2}}\urcorner}
+\newcommand{\RPSnd}[2]{\lfloor_{\pt{#1}}^{+\pt{#2}}\rceil}
+
+%% Operands are three letter designations, all lowercase, I try and not
+%% use operands when the normal mathmode looks good.  These should only
+%% work when you are in math mode.
+
+\newcommand{\sel}[1]{\ensuremath{\sigma_{#1}}} % Select
+\newcommand{\prj}[1]{\ensuremath{\pi_{#1}}}    %Project
+\newcommand{\join}[1]{\ensuremath{\Join_{#1}}} % Join
+
+%% These are special commands that are used to draw graphs for our query
+%% processor.  Sometimes to simplify the commands, there are special
+%% nodes for particular purposes in the node types.  I should probably
+%% rename these wo we have more letters to work with
+
+\newcommand{\lnd}[1]{\leaf{\ensuremath{#1}}} %Leaf Node
+\newcommand{\snd}[1]{\branch{1}{\sel{#1}}} % Select Node
+\newcommand{\pnd}[1]{\branch{1}{\prj{#1}}} % Projectd Node
+\newcommand{\jnd}[1]{\branch{2}{\join{#1}}} %Join Node
+\newcommand{\und}{\branch{2}{$\bigcup$}} %Union
+
+\newcommand{\psrnd}[1]{\branch{1}{\fbox{$|_{#1}$}}} %IA Point Set restriction
+\newcommand{\vsrnd}[1]{\branch{1}{$||_{#1}$}} %IA Value Restriction
+\newcommand{\extnd}[1]{\branch{1}{\fbox{$|^{#1}$}}} %IA PointSet Extension
+\newcommand{\gtnd}[1]{\branch{1}{\ovalbox{$\circ {#1}$}}} %IA Geometric Transformation
+
+
+% Logic functions
+\newcommand{\imp}{\rightarrow}
+\renewcommand{\-}{\neg}
+\renewcommand{\^}{\wedge}
+\renewcommand{\v}{\vee}
+\newcommand{\e}{\square}
+\newcommand{\so}{\Longrightarrow}
+
+% for adjacency graphs
+\newcommand{\I}{\ensuremath \infty}
+% P NP 
+\renewcommand{\P}{\ensuremath{\mathbb{P}}}
+\newcommand{\polyR}{\ensuremath{\le_{\mathbb{P}}}}
+\newcommand{\NP}{\ensuremath{\mathbb{NP}}}
+
+% Grid Drawing Utilities
+%\usepackage{pstricks}
+\definecolor{orange}{cmyk}{0,0.61,0.87,0}
+
+\newpsstyle{query}{linestyle=dashed,framearc=0.1}
+\newpsstyle{roi}{linecolor=black,framearc=0.1}
+\newpsstyle{frame}{linecolor=black,framearc=0.1}
+\newpsstyle{labelStyle}{fillcolor=white,linestyle=none}
+\newpsstyle{overlap}{fillstyle=hlines*,fillcolor=white}
+
+\newpsobject{extent}{psgrid}{gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt}
+%\newpsobject{extent}{psgrid}{gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt,fillstyle=solid,fillcolor=white}
+
+\newenvironment{FramePic}[1][10,10]{%
+  \begin{pspicture}(#1)%
+  \extent(#1)}%
+  {\end{pspicture}}
+
+% Special Command to label boxes consistantly
+\def\roi{\pst@object{roi}}
+\def\roi@i(#1){%
+ \@ifnextchar({\roi@ii(#1)}{\roi@ii(0,0)(#1)}%)
+ }
+\def\roi@ii(#1)(#2){\psframe@i(#1)(#2)%
+ \uput{5pt}[ur](#1)}
+
+% Image Algebra SET Macros
+\newcommand{\Z}[1][]{\ensuremath{\mathbb{Z}^{#1}}}
+\newcommand{\Zp}[1][]{\ensuremath{\mathbb{Z}^{+\thinspace#1}}}
+\newcommand{\Zn}[1][2]{\ensuremath{{\mathbb{Z}_{2^{#1}}}}}
+\newcommand{\Zpn}[1]{{\ensuremath{\mathbb{Z}^{\+}_{2^{#1}}}}}
+
+
+%I think that shefalli put in these definitions.
+% Definitions
+
+\def\newdef#1#2{%
+    \expandafter\@ifdefinable\csname #1\endcsname
+        {\@definecounter{#1}%
+         \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
+         \global\@namedef{#1}{\@defthm{#1}{#2}}%
+         \global\@namedef{end#1}{\@endtheorem}%
+    }%
+}
+
+\def\@defthm#1#2{%
+    \refstepcounter{#1}%
+    \@ifnextchar[{\@ydefthm{#1}{#2}}{\@xdefthm{#1}{#2}}%
+}
+\def\@xdefthm#1#2{%
+    \@begindef{#2}{\csname the#1\endcsname}%
+    \ignorespaces
+}
+\def\@ydefthm#1#2[#3]{%
+    \trivlist
+    \item[%
+        \hskip 10\p@
+        \hskip \labelsep
+        {\it #2%
+         \savebox\@tempboxa{#3}%
+         \ifdim \wd\@tempboxa>\z@
+            \ \box\@tempboxa
+         \fi.%
+        }]%
+    \ignorespaces
+}
+\def\@begindef#1#2{%
+    \trivlist
+    \item[%
+        \hskip 10\p@
+        \hskip \labelsep
+        {\it #1\ \rm #2.}%
+    ]%
+}
+
+\newenvironment{syntax}{
+   \begin{quote}  
+  \fontfamily{pcr}  \small
+   }
+{\end{quote}}

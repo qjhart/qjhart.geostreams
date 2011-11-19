@@ -1,0 +1,14 @@
+extern E_f evln_(integer *instr, real *rline);
+extern int evsc2lpf_(integer *instr, real *elev, real *scan, real *rl, real *rp);
+extern doublereal gatt_(integer *k0, doublereal *rec, doublereal *wa, doublereal *te);
+extern int gpoint_(integer *instr, integer *flip_flg__, real *rlat, real *rlon, real *alf, real *gam, integer *ierr);
+extern int inst2er_(real *r__, real *p, real *y, doublereal *a, doublereal *at);
+extern int lmodel_(doublereal *t, doublereal *tu, doublereal *rec, integer *imc, doublereal *rlat, doublereal *rlon);
+extern int lpoint_(integer *instr, integer *flip_flg__, real *alpha0, real *zeta0, real *rlat, real *rlon, integer *ierr);
+extern E_f scpx_(integer *instr, real *pix);
+extern int setcons_(integer *nscyc1, integer *nsinc1, integer *ewcyc1, integer *ewinc1, integer *nscyc2, integer *nsinc2, integer *ewcyc2, integer *ewinc2);
+extern int sndeloc_(integer *flip, integer *cyew, integer *incew, integer *cyns, integer *incns, real *svew, real *svns, real *doff, real *geo);
+extern E_f time50_(integer *i__);
+extern doublereal timex_(integer *ny, integer *nd, integer *nh, integer *nm, doublereal *s);
+/* comlen instcomm_ 72 */
+/* comlen elcomm_ 124 */

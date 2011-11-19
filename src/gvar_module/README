@@ -1,0 +1,16 @@
+created by jiezhang on June 07, 2005
+
+This distribution includes the files to build an apache module for our
+geostream server, and some other writer files, such as GRASS writer.
+
+Before install this package, you need to install libgvar first.
+
+Please see INSTALL for more information.
+
+
+10/10/07 Updated by Carlos Rueda
+	For the GRASS writer module and program, see grass/README.txt
+
+
+
+$Id: README,v 1.2 2007/10/11 07:54:03 crueda Exp $

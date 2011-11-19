@@ -1,0 +1,107 @@
+#! /usr/bin/perl -w
+
+use Gvar;
+use Math::Trig;
+use Getopt::Long qw[:config prefix_pattern=(--|-|) ];
+use Pod::Usage;
+
+my %opt = 
+  (
+   'defaults'=>undef,
+   );
+
+GetOptions(\%opt,'help|?',"man",'goes=s','defaults!') ||
+	pod2usage(2);
+
+pod2usage(2) unless (defined $opt{goes} and -f $opt{goes});
+
+my %this;
+
+my $frame = new Gvar::Frame(input => $opt{goes});
+my $doc = $frame->first_doc;
+$this{goes}=$doc->{SPCID};
+my $flipflag=$doc->flipflag;
+
+
+my $ISCAN=$doc->{ISCAN};
+die "IMC NOT active" unless $ISCAN->IMC_active;
+
+my $oa = $doc->{oa};
+my $parms=$oa->{parms};
+$this{lam} = $parms->[4];			# Longitude
+$this{dr} = $parms->[5];			# radial distance from Nominal
+$this{phi} = $parms->[6];			# latitude
+$this{psi} = $parms->[7];			# Orbital YAW
+$this{roll} = $parms->[8]; # Attitude Roll
+$this{pitch} = $parms->[9];# Attitude pitch
+$this{yaw} = $parms->[10]; # Attitude yaw
+
+my %defaults=
+  (
+   lam=>[-135*atan(1)/45,1e-6],
+   dr=>0,
+   phi=>0,
+   psi=>0,
+   pitch=>0,
+   roll=>0,
+   yaw=>0,
+  );
+
+my $proj="+proj=goes +goes=$this{goes}";
+for (keys %defaults) {
+  if ($opt{defaults}) {
+      $proj .= " +$_=".$this{$_};
+    } else {    
+      if (ref($defaults{$_}) eq ARRAY) {
+	$proj .= " +$_=".$this{$_} unless abs($this{$_}-$defaults{$_}->[0]) < $defaults{$_}->[1];
+      } else {
+	$proj .= " +$_=".$this{$_} unless ($this{$_}==$defaults{$_});
+      }
+    }
+}
+print $proj."\n";
+
+1;
+__END__
+
+=head1 NAME
+	
+geostr - GeoStream Client and Server
+
+=head1 SYNOPSIS
+
+goes.proj_info [options] goes=filename
+
+ Options:
+   --help            brief help message
+   --man             full documentation
+   --goes=filename   GOES file to read header information
+
+goes.proj_info reads a GOES data header, looks for the first doc
+block, and outputs the projection information for that data.  
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<goes>
+
+Set the filename from which to read the goes header to determine the
+projection information.
+
+=item B<-help>
+
+Print a brief help message and exits.
+
+=item B<-man>
+
+Prints the manual page and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<geostr> will eventually act as a client and server in the accessing
+GOES geostreams.
+
+=cut

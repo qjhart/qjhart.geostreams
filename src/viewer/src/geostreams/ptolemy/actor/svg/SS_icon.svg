@@ -1,0 +1,15 @@
+<svg>
+<rect x="-16" y="-16"
+ width="52" height="30"
+ style="fill:{fillColor};stroke-width:1"
+/>
+<text x="-17" y="6"
+ style="font-size:20; fill:black; font-family:SansSerif">
+  SS
+</text>
+<text x="16" y="10"
+ style="font-size:12; fill:gray; font-family:SansSerif">
+  {numClients}
+</text>
+</svg>
+

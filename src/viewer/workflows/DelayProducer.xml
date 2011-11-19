@@ -1,0 +1,89 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="DelayProducer" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="5.0.1">
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={0, 0, 675, 467}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[455, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="0.8">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{110.75, 174.703125}">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-110.0, 110.0]">
+        </property>
+    </property>
+    <property name="_documentation" class="ptolemy.data.expr.FileParameter" value="/home/carueda/prg/ptII5.0.1/doc/index.htm">
+    </property>
+    <entity name="GOES Reader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <property name="GeoStreams server spec" class="ptolemy.data.expr.FileParameter" value="file:/home/carueda/goesdata/local/local.xml">
+        </property>
+        <doc>Reads a GeoStreams stream and blah blah blah</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-120.0, 0.0]">
+        </property>
+    </entity>
+    <entity name="D^1" class="geostreams.ptolemy.actor.DelayActor">
+        <doc>Delay</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[45.0, 0.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+        </property>
+    </entity>
+    <entity name="QueryDispatcher" class="edu.ucdavis.geostreams.actor.we.QueryDispatcherActor">
+        <doc>QueryDispatcherActor </doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[255.0, 20.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="NetInterface" class="edu.ucdavis.geostreams.actor.we.NetInterfaceActor">
+        <doc>NetInterfaceActor </doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[325.0, 60.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="SS-1" class="edu.ucdavis.geostreams.actor.we.StreamServerActor">
+        <doc>StreamServer</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[155.0, 0.0]">
+        </property>
+    </entity>
+    <entity name="D^2" class="geostreams.ptolemy.actor.DelayActor">
+        <doc>Delay</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[45.0, 60.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+        </property>
+    </entity>
+    <entity name="D^3" class="geostreams.ptolemy.actor.DelayActor">
+        <doc>Delay</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[45.0, 120.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+        </property>
+    </entity>
+    <entity name="SS-2" class="geostreams.ptolemy.actor.we.StreamServerActor">
+        <doc>StreamServer</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[155.0, 60.0]">
+        </property>
+    </entity>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <vertex name="vertex1" value="[-20.0, 0.0]">
+        </vertex>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <link port="GOES Reader.output" relation="relation3"/>
+    <link port="D^1.input" relation="relation3"/>
+    <link port="D^1.output" relation="relation"/>
+    <link port="SS-1.input" relation="relation"/>
+    <link port="D^2.input" relation="relation3"/>
+    <link port="D^2.output" relation="relation2"/>
+    <link port="D^3.input" relation="relation3"/>
+    <link port="SS-2.input" relation="relation2"/>
+</entity>

@@ -1,0 +1,71 @@
+#! /usr/bin/make -f
+
+# Are we currently Running Grass?
+ifndef GISRC
+  $(error Must be running in GRASS)
+endif
+
+GISDBASE:=$(shell g.gisenv GISDBASE)
+LOCATION_NAME:=$(shell g.gisenv LOCATION_NAME)
+MAPSET:=$(shell g.gisenv MAPSET)
+
+# Shortcut Directories
+loc:=$(GISDBASE)$(LOCATION_NAME)
+rast:=$(loc)/$(MAPSET)/cellhd
+# etc is our special location for non-grass datafiles
+etc:=$(loc)/$(MAPSET)/etc
+
+SHELL:=/bin/bash
+
+ch:=$(patsubst %,ch%,1 2 3 4 5 )
+
+.PHONY: info rename-orig remake
+
+info:
+	@echo "Fixes up a preliminary GOES mapset"
+	@echo goes.fixup remake WIND remove-old
+	@echo "   does it all"
+
+rename-orig: $(patsubst %,$(rast)/old%,$(ch))
+
+remake: rename-orig $(patsubst %,$(rast)/%,$(ch))
+
+.PHONY: remove-old
+remove-old:
+	g.remove rast=`echo $(patsubst %,old%,$(ch)) | tr ' ' ','`
+
+# Every mapset needs a WINDOW.  This command sets it to the visible
+# region, In create_grass_file, this can be fixed with by adding in
+# the default window for visible channel, but the region needs fixing
+# too, as below.
+
+# WIND is PHONY, so we can also reset to this window.
+.PHONY: WIND
+
+WIND:
+	g.region rast=ch1 || g.region -d
+
+
+# In the current implementation of create_grass_file, there are two
+# big problemsin that the regions are incorrect (They go from center
+# instead of boundary), and that most ancillary files are missing,
+# including: cats/ch3, cell_misc/ch3, cellhd/ch3 (needs fixing),
+# colr/ch3, hist/ch3.  The way this is fixed below, is that the
+# current versions are copied to a new location, their headers are
+# fixed up, and then the new versions are created with r.mapcalc,
+# which automatically sets the proper files, does the range
+# calculation, etc.  In create_grass_files, this could be done by
+# maintaining the range, and then adding in all the files by hand.  A
+# better way would be to use the actual grass raster creation files
+# however.
+
+# Note the trick that $(rast) points to the cellhd
+$(patsubst %,$(rast)/old%,$(ch)): $(rast)/old% :
+	g.rename rast=$*,old$*
+	perl -i -a -n -e '$$F[1]-=0.5 if lc $$F[0] eq "south:" or lc $$F[0] eq "west:";$$F[1]+=0.5 if lc $$F[0] eq "north:" or lc $$F[0] eq "east:"; print join(" ",@F),"\n";' $(rast)/old$*; 
+
+$(patsubst %,$(rast)/%,$(ch)): $(rast)/% : $(rast)/old%
+	g.region rast=old$*;
+	r.mapcalc $*=old$* || true;
+	r.colors map=$* color=grey;
+

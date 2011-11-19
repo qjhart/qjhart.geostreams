@@ -1,0 +1,206 @@
+Geostreams Project
+Module: imgstr - image stream creation
+Carlos A. Rueda-Velasquez
+$Id: ChangeLog,v 1.15 2005/08/09 09:47:33 crueda Exp $
+
+08/09/05
+	- Row constructor now with a copyData flag.
+	
+07/27/05
+	- BinImgStream: fixed bug: wrong buffer length in some calls to
+	  writer->writeBuffer.
+	  
+	- Binary transmission tests OK.
+	
+07/26/05
+	- ImgStream.h: enum Format adjusted and values explicitly given
+	  for clarity.
+	  
+07/22/05
+	- fixed bug in reverse_bytes-based routines
+	
+07/08/05
+	writeChannelDef, startFrame now returning int.
+	Row: copies value array.
+	AsciiImgStream: now uses ostringstream.
+	BinImgStream: implemented (not yet tested)
+	sampleSize attribute added to ChannelDef.
+	
+07/06/05
+	Added a name to ChannelDef
+	
+07/05/05
+	StreamWriter: New definition to delegate the actual writing of
+	data to the client.
+
+06/10/05
+	First tests, mainly on link dependencies. Using a first 
+	modification of gvar_test.
+	
+05/25/05
+	New classes BaseImgStream and AsciiImgStream.
+	Channels are identified via an ``int ID.'' 
+	Creating libimgstr.a
+	Channel renamed to ChannelDef
+	New classes FrameDef and Rectangle.
+	New class Row.
+
+05/07/05
+	
+	imgstr: new image stream creation module (based on MngStream)
+
+	imgstr tries to be a more general name which naturally allows for
+	more possible output formats besides or instead of MNG like APNG,
+	GRASS, and others if necessary.
+	
+	Starting implementation..
+
+	
+**What follows is copied verbatim from ../gvar/mngstream/DEVNOTES.txt**
+
+02/23/05
+	Added source files used for tests in the Kepler system.
+	
+	MainPanel: when null, sets saved_url according to saved_filename, so load()
+	works properly. (The bug was that "Load" button in standalone MngViewer
+	was not working.)
+	
+	For some reason the original job to connect via gvnetapi on geostream.cs
+	didn't complete	properly as it does on the cipic.goes machine.
+	So I decided for a simpler scheme on geostream.cs: The cronjob is now:
+		50 * * * *   wget "http://casil.ucdavis.edu/~crueda/goes/saved_vis.jpg" \
+							-O saved_vis.jpg
+	So the saved image is grabbed every hour from goes.cipic.
+
+02/09/05
+	MainPanel.java: Different constructors depending on
+	given saved file specificaction: filename or URL
+	
+	MngViewerApplet.java: Uses getCodeBase to specify the URL of
+	saved file.
+	
+	Various .php files updated to work with paths relative to the location
+	of the scripts.
+	
+	The applet is now working fine from:
+		http://geostream.cs.ucdavis.edu/applet/applet.php
+
+	cronjob also set up on geostream.cs; 
+	Stript cronjob3h updated so it used a relative path to call gvnetapi2
+
+	It seems, the PHP image library is not available in geostream.cs :-(
+	(last.php/redim.php don't work -- no big deal anyway)
+	
+	
+08/10/04	(from previous days)
+	- I set up a crontab on goes.cipic to run `cronjob3h'
+	  every three hours:
+	      55 13,16,19,22,1,4,7,10 * * *   cronjob3h
+	  
+	  mngstream.jar is called with 
+	     -delay 60    save every 60 seconds
+		 -alive 35    keep alive for 35 minutes
+		 
+	  However I've seen that sometimes that the full scan finishes
+	  beyond the alive period.
+	  Well, a better solution would be to check for the (x,y) locations
+	  to determine when a full scan has finished. To-DO.
+
+07/29/04
+	- MngStreamClient now makes a maximum number of unsuccessful 
+	  reconnections. After that it exits.
+	- MngStreamClient now binds a port so I can control that
+	  at most one instance is running. I set up a cronjob that
+	  (re)starts MngStreamClient every 5 minutes.
+	- new last.php, redim.php to show last saved image.
+	
+07/27/04
+	Memory leak is caused by ImageIO:
+		0) Commenting all ImageIO.{read,write} calls:
+			RES=29m (top report)
+		1) With ImageIO.read only for the file on disk:
+			RES=42m (13Mb difference!)
+		2) 1) and ImageIO.read for each PNG
+		   (see MngInputStream.nextPng):
+			RES starts at 42m and increases steadily!!
+		
+	I'm now using incremental garbage collection ``-Xincgc'', and 
+	the footprint seems to improve a bit..
+	
+	One more try: use directly a ImageReader object, so I can call
+	ImageReader.dispose() --I found something related to this memory leak
+	in the Sun Java bug database: ImageIO does not call dispose() properly.
+	I'm not sure if this is the problem, but let's see..
+
+	- Script ``run'' is now called just ``./run''
+	  since ``./run stdin'' is unstable.
+
+07/26/04
+	- New thread ImageUpdater for better control.
+	- MngStreamClient can now read the stream from stdin.
+	- Script ``run'' is now called:  
+	    ./run stdin
+
+07/24/04
+	- package structure for Java code:
+		geostreams.goes:  GOESConstants
+		geostreams.mngstream: Non-gui interface to download the mng stream
+		geostreams.mngstream.applet: Code for the applet (replicated)
+	- new build.xml
+	- saved_vis.jpg is now updated on casil with the following:
+	    nohup java -Djava.awt.headless=true -jar DIST/mngstream.jar -delay 120 &
+	  (see `run' shell script)
+	  
+	- MainPanel.connect(): calls load() if a certain amount of time has
+	  passed since the last load.
+
+06/05/04
+	- MngViewer can now run with no gui 
+	  ==> NO, see MngStreamClient for a better way.
+	- Red lines are drawn only as an applet.
+
+06/02/04
+	- jpg format chosen for saving complete image.
+	- new MainPanel to allow for applets and apps.
+	- new control.php and index.php.
+	- automatic reconnection when getPng() returns null.
+	- scroll bars updated.
+	- applet on mozilla tested with more than 30K images without problems
+	
+05/29/04
+	MngStream.cpp: SIGPIPE handled to terminate process if client
+	ends connection.
+
+05/28/04
+	Scroll pane, zoom-in, zoom-out.
+	
+05/27/04
+	save/load to store/restore current contents in png format.
+	Note: the saved.png fails to open as an applet
+	
+05/26/04
+	more tests to check mislocation.
+	See MngStream.cpp: show_rows()
+	
+05/21/04
+	- Corner points p0, p1 to create MngPanel
+	- Is it necessary to reverse the bytes is the generated png image?
+	  (see reverse_rows in MngStream.cpp)
+	
+05/18/04
+	buttons: connect, stop
+	
+05/11/04
+	MngViewer.java: first version
+	MngViewerApplet.java: first version
+	
+05/10/04
+	sample depth changed to 16.
+	Due to some errors relating to not being able to write
+	all requested bytes in my_write_data, I tried:
+	   fdopen(fileno(stdout), "wb");
+	and it's working. ;-)
+	more tests needed, anyways
+	
+05/08/04
+	initial version

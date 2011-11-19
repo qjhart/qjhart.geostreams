@@ -1,0 +1,67 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="mapK1" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{370, 30}">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={83, 250, 816, 512}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[600, 400]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{300.0, 200.0}">
+    </property>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{65, 80}">
+        </property>
+    </entity>
+    <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 400 400">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="40">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[245.0, 80.0]">
+        </property>
+    </entity>
+    <entity name="MapConstant" class="geostreams.ptolemy.actor.MapConstantActor">
+        <property name="constantParam" class="ptolemy.data.expr.StringParameter" value="255">
+        </property>
+        <doc>MapConstant</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[135.0, 185.0]">
+        </property>
+    </entity>
+    <entity name="ImageStreamViewer2" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="400 0 400 400">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="40">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[275.0, 185.0]">
+        </property>
+    </entity>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="ImageStreamReader.output" relation="relation"/>
+    <link port="ImageStreamReader.output" relation="relation2"/>
+    <link port="ImageStreamViewer.input" relation="relation"/>
+    <link port="MapConstant.input" relation="relation2"/>
+    <link port="MapConstant.output" relation="relation3"/>
+    <link port="ImageStreamViewer2.input" relation="relation3"/>
+</entity>

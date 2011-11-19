@@ -1,0 +1,97 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="viewJAI" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{420, 35}">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={143, 182, 816, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[600, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{283.4494949494949, 159.114898989899}">
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="12">
+        </property>
+        <property name="textColor" class="ptolemy.actor.gui.ColorAttribute" value="{1.0, 0.0, 0.0, 1.0}">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="Exploring the integration of GeoStreams images with JAI images">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[5.0, 195.0]">
+        </property>
+    </property>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="http://geostreams.ucdavis.edu/~carueda/applet/dev/geostreams2.xml">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{60, 40}">
+        </property>
+    </entity>
+    <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 300 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="25">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[210.0, 40.0]">
+        </property>
+    </entity>
+    <entity name="ImageDisplay" class="ptolemy.actor.lib.image.ImageDisplay">
+        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={391, 19, 210, 281}, maximized=false}">
+        </property>
+        <property name="_pictureSize" class="ptolemy.actor.gui.SizeAttribute" value="[800, 711]">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[325.0, 150.0]">
+        </property>
+    </entity>
+    <entity name="ImageToJAI" class="ptolemy.actor.lib.jai.ImageToJAI">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[85.0, 150.0]">
+        </property>
+    </entity>
+    <entity name="JAIScale" class="ptolemy.actor.lib.jai.JAIScale">
+        <property name="specifySize" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="xScaleFactor" class="ptolemy.data.expr.Parameter" value="0.2">
+        </property>
+        <property name="yScaleFactor" class="ptolemy.data.expr.Parameter" value="0.2">
+        </property>
+        <property name="interpolationType" class="ptolemy.kernel.util.StringAttribute" value="nearestNeighbor">
+            <property name="style" class="ptolemy.actor.gui.style.ChoiceStyle">
+                <property name="bicubic" class="ptolemy.kernel.util.StringAttribute" value="bicubic">
+                </property>
+                <property name="bicubic2" class="ptolemy.kernel.util.StringAttribute" value="bicubic2">
+                </property>
+                <property name="bilinear" class="ptolemy.kernel.util.StringAttribute" value="bilinear">
+                </property>
+                <property name="nearestNeighbor" class="ptolemy.kernel.util.StringAttribute" value="nearestNeighbor">
+                </property>
+            </property>
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[195.0, 150.0]">
+        </property>
+    </entity>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <relation name="relation4" class="ptolemy.actor.TypedIORelation">
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="ImageStreamReader.output" relation="relation"/>
+    <link port="ImageStreamViewer.input" relation="relation"/>
+    <link port="ImageStreamViewer.output" relation="relation2"/>
+    <link port="ImageDisplay.input" relation="relation4"/>
+    <link port="ImageToJAI.input" relation="relation2"/>
+    <link port="ImageToJAI.output" relation="relation3"/>
+    <link port="JAIScale.input" relation="relation3"/>
+    <link port="JAIScale.output" relation="relation4"/>
+</entity>

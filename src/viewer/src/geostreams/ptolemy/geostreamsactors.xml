@@ -1,0 +1,208 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE plot PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+
+<!--
+   $Id: geostreamsactors.xml,v 1.21 2007/09/16 09:47:03 crueda Exp $
+-->
+<entity name="GeoStreams" class="ptolemy.moml.EntityLibrary">
+  <configure>
+    <?moml
+      <group> <doc>Geostreams Actors</doc>
+
+		<!--------   Monitoring icons   -------------->
+        <property name="MonitorIconManager" class="org.kepler.MonitorIconManager"/>
+
+
+        <entity name="CimisReader" 
+               class="geostreams.ptolemy.actor.CimisReaderActor">
+          <doc>Reads CIMIS data</doc>
+        </entity>
+
+        <entity name="GoesPointReader" 
+               class="geostreams.ptolemy.actor.CimisGoesPointReaderActor">
+          <doc>Reads GOES point data</doc>
+        </entity>
+
+        <entity name="GoesI2T" 
+               class="geostreams.ptolemy.actor.GoesInfraredToTemperatureActor">
+          <doc>Converts GOES infrared to temperature</doc>
+        </entity>
+
+        <entity name="ArrayIntersect" 
+               class="geostreams.ptolemy.actor.ArrayIntersectActor">
+          <doc>ArrayIntersectActor</doc>
+        </entity>
+
+        <entity name="L2G" 
+               class="geostreams.ptolemy.actor.LatLonToGoesProjectionActor">
+          <doc>LatLonToGoesProjectionActor</doc>
+        </entity>
+
+
+
+        <entity name="StreamReader" 
+               class="geostreams.ptolemy.actor.StreamReaderActor">
+          <doc>Imports a GeoStreams stream</doc>
+        </entity>
+
+        <entity name="StreamViewer" 
+               class="geostreams.ptolemy.actor.StreamViewerActor">
+          <doc>Visualizes an image stream</doc>
+        </entity>
+
+        <entity name="RegionOfInterest" 
+               class="geostreams.ptolemy.actor.StreamRegionOfInterestActor">
+          <doc>RegionOfInterest</doc>
+        </entity>
+
+        <entity name="StreamExtension" 
+               class="geostreams.ptolemy.actor.StreamExtensionActor">
+          <doc>StreamExtension</doc>
+        </entity>
+
+        <entity name="Reprojection" 
+               class="geostreams.ptolemy.actor.StreamSpatialTransformActor">
+          <doc>Reprojection</doc>
+        </entity>
+
+        <entity name="Sampler2D" 
+               class="geostreams.ptolemy.actor.Sampler2DActor">
+          <doc>Sampler2D</doc>
+        </entity>
+
+        <entity name="Viz3D" 
+               class="geostreams.ptolemy.actor.Viz3DActor">
+          <doc>Viz3D</doc>
+        </entity>
+
+        <entity name="Delay" 
+               class="geostreams.ptolemy.actor.StreamDelayActor">
+          <doc>Delay</doc>
+        </entity>
+
+		<entity name="AbsoluteDifference" 
+				class="geostreams.ptolemy.actor.StreamAbsoluteDifferenceActor">
+		    <doc>AbsoluteDifference</doc>
+		</entity>
+ 
+        <entity name="Threshold" 
+               class="geostreams.ptolemy.actor.StreamThresholdActor">
+          <doc>Threshold</doc>
+        </entity>
+
+		<entity name="Addition" 
+				class="geostreams.ptolemy.actor.StreamAdditionActor">
+		    <doc>Addition</doc>
+		</entity>
+ 
+		<entity name="Difference" 
+				class="geostreams.ptolemy.actor.StreamDifferenceActor">
+		    <doc>Difference</doc>
+		</entity>
+ 
+		<entity name="Division" 
+				class="geostreams.ptolemy.actor.StreamDivisionActor">
+		    <doc>Division</doc>
+		</entity>
+ 
+		<entity name="AbsoluteValue" 
+				class="geostreams.ptolemy.actor.StreamAbsoluteValueActor">
+		    <doc>AbsoluteValue</doc>
+		</entity>
+ 
+        <entity name="AThreshold" 
+               class="geostreams.ptolemy.actor.StreamAThresholdActor">
+          <doc>AThreshold</doc>
+        </entity>
+        
+        <entity name="MapColor" 
+               class="geostreams.ptolemy.actor.StreamMapColorActor">
+          <doc>MapColor</doc>
+        </entity>
+
+        <entity name="MapConstant" 
+               class="geostreams.ptolemy.actor.StreamMapConstantActor">
+          <doc>MapConstant</doc>
+        </entity>
+
+        <entity name="Constant" 
+               class="geostreams.ptolemy.actor.StreamConstantActor">
+          <doc>Constant</doc>
+        </entity>
+
+        <entity name="Random" 
+               class="geostreams.ptolemy.actor.StreamRandomActor">
+          <doc>Random</doc>
+        </entity>
+
+        <entity name="Sine" 
+               class="geostreams.ptolemy.actor.StreamSineActor">
+          <doc>Sine</doc>
+        </entity>
+
+
+        <entity name="NetInterface" 
+               class="geostreams.ptolemy.NetInterface">
+          <doc>Net-enables a workflow</doc>
+        </entity>
+
+
+
+
+		<!--------   OLD   -------------->
+
+        <entity name="oldNetInterface" 
+               class="geostreams.ptolemy.Workflow">
+          <doc>Net-enables a workflow</doc>
+        </entity>
+
+        <entity name="ImageStreamReader" 
+               class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+          <doc>Imports a GeoStreams stream</doc>
+        </entity>
+
+        <entity name="ImageStreamViewer" 
+               class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+          <doc>Visualizes an image stream</doc>
+        </entity>
+
+        <entity name="Delay" 
+               class="geostreams.ptolemy.actor.DelayActor">
+          <doc>Delay</doc>
+        </entity>
+
+        <entity name="Threshold" 
+               class="geostreams.ptolemy.actor.ThresholdActor">
+          <doc>Threshold</doc>
+        </entity>
+
+        <entity name="RegionOfInterest" 
+               class="geostreams.ptolemy.actor.RegionOfInterestActor">
+          <doc>RegionOfInterest</doc>
+        </entity>
+
+        <entity name="MapConstant" 
+               class="geostreams.ptolemy.actor.MapConstantActor">
+          <doc>MapConstant</doc>
+        </entity>
+
+		<entity name="Difference" class="geostreams.ptolemy.actor.DifferenceActor">
+		    <doc>Difference</doc>
+		</entity>
+ 
+        <entity name="Id" 
+               class="geostreams.ptolemy.actor.IdActor">
+          <doc>Id</doc>
+        </entity>
+
+		<entity name="Test" class="geostreams.ptolemy.actor.TestActor1">
+		    <doc>Test</doc>
+		</entity>
+ 
+      </group>
+    ?>
+  </configure>
+</entity>
+
+

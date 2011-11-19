@@ -1,0 +1,409 @@
+\documentclass[10pt,letter]{article}
+\usepackage{qjh-article}
+\usepackage{geostreams}
+\usepackage{epsfig}
+\usepackage{multicol}
+
+\newcommand{\RPSnxD}{\RPSnx{n}{x}}
+%\newcommand{\RPSnx}[2]{\llcorner\pt{#1}^{\;\;\pt{#2}}\urcorner}
+%\newcommand{\RPSnd}[2]{\llcorner\pt{#1}^{+\pt{#2}}\urcorner}
+\newcommand{\RPSnx}[2]{\lfloor_{\pt{#1}}^{\;\;\pt{#2}}\rceil}
+\newcommand{\RPSnd}[2]{\lfloor_{\pt{#1}}^{+\pt{#2}}\rceil}
+
+\makeatletter
+\def\roI{\pst@object{roI}}
+\def\roI@i(#1){%
+ \@ifnextchar({\roI@ii(#1)}{\roI@ii(0,0)(#1)}%)
+ }
+\def\roI@ii(#1)(#2)#3#4{\psframe@i(#1)(#2)%
+ \uput{5pt}[ur](#1){#3}\uput{5pt}[dl](#2){#4}}
+%\makeatspecial
+
+
+\author{Quinn Hart $<$qjhart@ucdavis.edu$>$}
+\title{Spatial Selection in GeoStreams}
+
+\abstract{\emph{ Streaming database processing has a great deal of
+    potential impact for remotely-sensed imagery.  Besides it
+    typically large bandwidth, imagery has a number of attributes that
+    are different from generic streaming data.  First, many queries
+    want to select small spatial regions from a larger region.
+    Secondly, the data is highly organized as it streams.  Finally,
+    the data often arrives in a very chunk-like manner, where regular
+    portions arrive simultaneously.  Often these chunks of data arrive
+    with attributes associated to the chunk, applying in some way to
+    the individual parts of the image.  In this paper we describe how
+    we take advantage of both of these aspects in our query processor.
+    We describe a methodology handle many spatial extent queries over
+    a single stream, which minimizes the size of the processing system
+    and in-flight data.}}
+
+\begin{document}
+
+\maketitle
+
+\begin{multicols}{2}
+
+\paragraph{Point Sets}
+
+In this paper, we very often refer to pointsets that are rectangular
+in space.  We describe two syntax shortcuts in our definitions of
+pointsets.  These describe pointsets based on the minimum and maximum
+points in the sets (the corners), or the minimum point plus a delta.
+Assume the pointsets $\ps{P},\ps{Q} \subset \Z[n]$.  We define the following:
+
+\begin{align*}
+\ps{P} = \RPSnx{n}{x} &= {i \in \Z[2] \qquad \pt{n} \le \pt{i} \le \pt{x}}  \\
+\ps{Q} = \RPSnd{n}{d} &= {i \in \Z[2] \qquad \pt{n} \le \pt{i} \le \pt{n}+\pt{d}} \\
+& \text{where } \pt{n},\pt{x},\pt{d} \in \Z[n] \\
+\pt{n} &< \pt{i} \equiv n_1 < i_1, n_2 < i_2, \ldots, n_n < i_n
+\end{align*}
+
+Note that the points $\pt{n}$ and $\pt{x}$ correspond to
+$\bigwedge{\ps{P}}$ and $\bigvee{\ps{P}}$ respectively.
+
+\paragraph{Geostream semantics}
+
+We assume the following about our input geostream.  A geostream can be
+thought of as a relation with an attribute that is an image.  The
+image has the following restrictions; it is a rectangular point set,
+in these examples in \Zp[2], though the image can have higher
+dimensions, and the image arrives in row-scan order.  We also assume
+that all other attributes of a geostream arrive before the image, and
+that the rectangular pointset of the image can be determined at the
+start of the image stream.  The image arrives in discrete pieces,
+which we call ``chunks''.  In this example, we assume that a chunk
+contains an integral number of complete rows of imagery.  These
+assumptions are typical of mainy image formats, in particular they
+correspond to the GOES GVAR format, described below, which is our
+target application.
+
+\paragraph{Joining Two Regions}
+
+There are a number of ways that the user would like to intersect two
+regions together. Typically, we are describing the methods of using a
+region in a query to extract a region from an image.  Three methods
+are shown below.  Each figure shows one region
+$Q=\RPSnx{(5,5)}{(8,8)}$, intersecting three query point sets,
+$q=\RPSnx{(1,1)}{(9,9)}, r=\RPSnx{(2,2)}{(7,7)},
+s=\RPSnx{(3,3)}{(9,4)}$.  Figure~\ref{fig:restriction}a shows a domain
+restriction query.  Here, all the points that are in both the query
+region and the image region.  One interesting aspect is that the even
+images with no overlap return results.  This is a feature, in fact,
+the user may be very interested in images that do not have any
+overlap.  Figure~\ref{fig:subset} only responds with images that
+completely overlap, the region of interest, by including a subset test
+on the pointsets.
+
+
+\psset{unit=0.25}
+\begin{figure*}[htbp]
+  \centering
+  \subfigure[input]{
+    \begin{FramePic}[10,10]
+   \roi[style=query](5,5)(8,8){$Q$}
+   \roi[style=frame](1,1)(9,9){$q$}
+   \roi[style=frame](2,2)(7,7){$r$}
+   \roi[style=frame](3,3)(9,4){$s$}
+ \end{FramePic}
+}
+\subfigure[$q|_Q$]{
+  \begin{FramePic}[10,10]
+   \roi[style=overlap](5,5)(8,8){$q|_Q$}
+ \end{FramePic}
+}
+\subfigure[$r|_Q$]{
+ \begin{FramePic}[10,10]
+   \roi[style=overlap](5,5)(7,7){$r|_Q$}
+ \end{FramePic}  
+}
+\subfigure[$t|_Q$]{
+   \begin{FramePic}[10,10]
+   \roi[style=overlap](5,5)(5,5){$t|_Q$}
+ \end{FramePic}
+}
+  \caption{Select g.id,$g.i|_Q$ from $g$}
+  \label{fig:restriction}
+\end{figure*} 
+
+\begin{figure*}[htbp]
+  \centering
+  \subfigure[input]{
+    \begin{FramePic}[10,10]
+   \roi[style=query](5,5)(8,8){$Q$}
+   \roi[style=frame](1,1)(9,9){$q$}
+   \roi[style=frame](2,2)(7,7){$r$}
+   \roi[style=frame](3,3)(9,4){$s$}
+ \end{FramePic}
+}
+\subfigure[$q|_Q$]{
+  \begin{FramePic}[10,10]
+   \roi[style=overlap](5,5)(8,8){$q|_Q$}
+ \end{FramePic}
+}
+  \caption{Select g.id,$g.i|_Q$ from $g$ where $g.i \subset Q$}
+  \label{fig:subset}
+\end{figure*} 
+
+
+Figure~\ref{fig:extension} shows how a user would use image extension to
+verify each returned image has the same pointset.  In this example,
+$\Bbb{O}$ is taken as an image that covers all of $\Z{2}$, with a
+value of 0 for all points.  Unlike the domain restrictions, the
+extension of a pointset onto $\Bbb{O}|_Q$, will always return an
+image with pointset $Q$.  This is an important modification because
+only images that share a common pointset can be combined to form a new
+dimension.  For example, \emph{Select g.id,$g.i|_Q|^{\Bbb{O}|_Q}$ from
+  $g$} would return a set of images with the same pointset, whereas
+\emph{Select g.id,$compose(g.i|_Q|^{\Bbb{O}|_Q})$ from $g$}, would
+return a new image with an additional dimension.  Where,
+$compose(x_1,x_2,\ldots,x_n)$ joins $n$ $k$ dimensional images with a
+common point set, into a $k+1$ dimensional image.
+
+\emph{ That's not very good notation, and there is an interesting
+  point here.  In most SQL statements we have the notion of
+  aggregation functions, where as in streaming databases, what we
+  really want to stream are accumulation functions.  We should make a
+  note that this is something that we need to study in more detail.}
+
+\begin{figure*}[htbp]
+  \centering
+  \subfigure[input]{
+    \begin{FramePic}[10,10]
+   \roi[style=query](5,5)(8,8){$Q$}
+   \roi[style=frame](1,1)(9,9){$q$}
+   \roi[style=frame](2,2)(7,7){$r$}
+   \roi[style=frame](3,3)(9,4){$s$}
+ \end{FramePic}
+}
+\subfigure[$q|_Q$]{
+  \begin{FramePic}[10,10]
+   \roi[style=overlap](5,5)(8,8){$q|_Q$}
+ \end{FramePic}
+}
+\subfigure[$r|_Q$]{
+ \begin{FramePic}[10,10]
+   \roi[fillstyle=solid,fillcolor=lightgray](5,5)(8,8){$Q$}
+   \roi[style=overlap](5,5)(7,7){$r|_Q$}
+ \end{FramePic}  
+}
+\subfigure[$t|_Q$]{
+   \begin{FramePic}[10,10]
+   \roi[fillstyle=solid,fillcolor=lightgray](5,5)(8,8){$Q$}
+   \roi[style=overlap](5,5)(5,5){$t|_Q$}
+ \end{FramePic}
+}
+  \caption{Select g.id,$i|_Q|^{\Bbb{0}|_Q}$ from $g$}
+  \label{fig:extension}
+\end{figure*} 
+
+\paragraph{Multiple Spatial Queries}
+
+Having described some simple overlaps above, we investigate a
+structure to handle multiple queries.  Figure~\ref{fig:multi}a shows a
+region with 3 outstanding querie pointsets.  Our goal is to rechunk
+the input data so that for each query they satisify the same
+constraints, that is they are in row scan order.  Additionally, we do
+not want to replicate any parts of input chunk.  The strategy we use
+is to rechunk our input data into smaller sizes, and assign to each
+new chunk all the queries which it satisfies.  Since our input stream
+is in row scan order it is simple to assign a proper order to new
+chunks.
+
+\psset{unit=3.0}
+\begin{figure*}[htbp]
+  \centering
+  \subfigure[input]{
+    \begin{FramePic}[10,10]
+   \roi[style=query](2,2)(8,9){$R$}
+   \roi[style=query](1,1)(6,6){$S$}
+   \roi[style=query](2,4)(9,8){$T$}
+ \end{FramePic}
+}
+\subfigure[input]{
+  \begin{FramePic}[10,10]
+  \roI[style=frame](0,9)(10,10){$\perp$}{$x_{00}$}
+
+  \roI[style=frame](0,8)(2,9){$\perp$}{$x_{10}$}
+   \roI[style=query](2,8)(8,9){$\{R\}$}{$x_{11}$}
+  \roI[style=frame](8,8)(10,9){$\perp$}{$x_{12}$}
+
+  \roI[style=frame](0,6)(2,8){$\perp$}{$x_{20}$}
+   \roI[style=query](2,6)(8,8){$\{R,T\}$}{$x_{21}$}
+   \roI[style=query](8,6)(9,8){$\{T\}$}{$x_{22}$}
+  \roI[style=frame](9,6)(10,8){$\perp$}{$x_{23}$}
+
+  \roI[style=frame](0,4)(1,6){$\perp$}{$x_{30}$}
+   \roI[style=query](1,4)(2,6){$\{S\}$}{$x_{31}$}
+   \roI[style=query](2,4)(6,6){$\{R,S,T\}$}{$x_{32}$}
+   \roI[style=query](6,4)(8,6){$\{R,T\}$}{$x_{33}$}
+   \roI[style=query](8,4)(9,6){$\{T\}$}{$x_{34}$}
+  \roI[style=frame](9,4)(10,6){$\perp$}{$x_{35}$}
+
+  \roI[style=frame](0,2)(1,4){$\perp$}{$x_{40}$}
+   \roI[style=query](1,2)(2,4){$\{S\}$}{$x_{41}$}
+   \roI[style=query](2,2)(6,4){$\{R,S\}$}{$x_{42}$}
+   \roI[style=query](6,2)(8,4){$\{R\}$}{$x_{43}$}
+  \roI[style=frame](8,2)(10,4){$\perp$}{$x_{44}$}
+
+  \roI[style=frame](0,1)(1,2){$\perp$}{$x_{50}$}
+   \roI[style=query](1,1)(6,2){$\{S\}$}{$x_{51}$}
+  \roI[style=frame](6,1)(10,2){$\perp$}{$x_{52}$}
+
+  \roI[style=frame](0,0)(10,1){$\perp$}{$x_{60}$}
+
+  \end{FramePic}
+}
+  \caption{}
+  \label{fig:multi}
+\end{figure*} 
+
+
+Since we have assumed the the input chunks are in integral numbers of
+rows, we can define the above formulation in images algebra terms as
+follows, where $X$ is an input image:
+
+\begin{align*}
+x = & (x_0|x_1|x_2|\ldots|x_n)^T \\
+x = & \left( \begin{array}{c}
+    x_0 \\
+    \hline
+    x_1 \\
+    \hline
+    \ldots \\
+    \hline
+    x_n
+  \end{array}\right)
+  &\text{where for each} x_i \\
+x_i = & (x_{i0}|x_{i1}|x_{i2}|\ldots|x_{im})
+\end{align*}
+
+That is, each image can be divided into a number of row chunks, each
+of which can be divided into a number of different column chunks.  If
+we define $X_q$ as the set of $x_{ij}$ chunks which satisfy query $q$,
+then the resultant image for query $q$ is composed with the equation.
+
+\begin{align*}
+x_q =& (q_0|q_1|q_2|\ldots|q_n)^T \\
+&\text{where for each } q_i \\
+q_i =& (x_{ij}|x_{i,j+1}|x_{i,j+2}|\ldots|x_{i,j+k}), x_{ij} \in Q
+\end{align*}
+
+Figure~\ref{fig:mutli}b shows the $x_{ij}$ chunks resulting from the
+input queries.  For exmaple, pointset $R$ can be composed with,
+
+\[ R = \left| \begin{array}{c}
+    x_{11} \\ 
+    \hline 
+    x_{21} \\
+    \hline
+    (x_{32}|x_{33}) \\
+    \hline
+    (x_{42}|x_{43})
+  \end{array}
+\right| \]
+
+The output shown in Figure~\ref{fig:multi}b suggests a number of data
+strutures, most notably a corner stitched
+structure~\cite{ouster:84:corner-stitc}.  However, for $n$ query
+pointsets, there are $O(n^2)$ resultant chunks and the size of
+structure that enumerates each chunk as in corner-stitching, would
+also have a size $O(n^2)$.  However, we can again take advantage of
+the fact that the input stream is in row scan order.  If we maintain
+the current state of query intersections for the input geostream, then
+when a new input chunk comes in we need only check if the new row(s)
+are entering or exiting a query pointset.  If not, we rechunk as
+before, otherwise we update our rechunking boundaries, by adding or
+removing the new query.  The state that we maintain for the current
+row is a sorted list of the x-values for each rechunk boundary, and
+the set of queries that each new chunk satisfies.
+
+To support this we only need to maintain an in-order list of the
+y-values for each query pointsets maximum and minimum.  There is a
+small problem with this arrangement.  All geostreams are in row scan
+order, but not ncecessarily starting from the maximum y value.  If a
+new geostream arrives at a lower value, then we would need to start
+from the top and build the starting set of x-values.  In practice, we
+will use a skip list~\cite{pugh:90:skip} to maintain our y-values, and
+will keep track of starting x-value sets, for the top few levels in
+our list.  This will allow use to find the nearest maintained x-value
+set and work forwards or backwards from there for the first row in any
+new geostream.
+
+\paragraph{Future Directions}
+
+The GeoStream format is currently too simple.  It is not able to
+described relaitonships between image streams, nor can it accept
+non-homgenous data within the stream.  These are significant
+limitations for streaming data sucah as satellitle imagery.  For
+example, the GOES satellite, besudes the imager data stream described
+above, also has an additional instrument, the sounder.  This data
+stream has many more channels that are more closely organized than the
+imager data.  We are working to develop a geostream model that can
+carry all this information in a single stream.
+
+\bibliographystyle{plain}
+\bibliography{2dq.bib}
+
+\paragraph{Appendix A: GOES data stream} 
+
+We will describe the format of one of our main testbed data sources,
+National Oceanic and Atmospheric Administration's (NOAA's)
+Geostationary Operational Environmental Satellite (GOES)
+satellite~\cite{goes}.  All data from the GOES satellite is
+transferred via the GVAR data stream, a format specific to NOAA GOES
+instruments.  Figure~\ref{fig:gvar} summarizes the GVAR data stream.
+
+\begin{figure*}[htbp]
+  \begin{center}
+    \includegraphics[width=16cm]{gvar.eps}
+    \caption{GOES GVAR data stream}
+    \label{fig:gvar}
+  \end{center}
+\end{figure*}
+
+The GVAR stream is a continuous data stream transmitting at
+approximately 2.1 Mb/sec.  It has two instruments, the imager and
+sounder, which have 5 and 19 spectral channels respectively.  
+The imager scans various sections of the earth's surface, North to
+South, about once every fifteen minutes in continuous frames.  A frame
+varies in size from about 100MB to 400MB, depending on the size of the
+region scanned.  The spatial extent of an imager pixel varies between
+spectral channels.  Typically a frame is transmitted completely before
+another starts, but priority frames can be inserted into a normal
+frame stream.
+
+An individual frame is made up of a large number of scans which are
+narrow swathes of data corresponding to the physical sweep of the
+instrument sensors from East to West.  The scans themselves are made
+up of 11 blocks of data, one documentation block and 10 data blocks
+for the pixel data.  The block is the atomic unit of transfer from the
+satellite to the receivers.  Documentation blocks are about 64K bits
+long, and data blocks can vary from 32K to 229K bits of data, depending
+on the width of the scan.  The documentation block includes operational
+parameters such as the current location of the satellite, the current
+frame and scan, parameters for each instrument, and additional
+information for each spectral channel.  The 11 blocks of a scan are
+transmitted together in order.  Sounder data, and other auxiliary data
+are transmitted between complete scans.
+%
+Each block includes a 10K bit synchronization tag, which receivers use
+to align reception to the blocks.  All blocks have a small common
+header.  They include an identifier, the size and type of block, the
+block acquisition time and other information.  Each block type must be
+read differently, as their format varies considerably.
+
+\end{multicols}
+
+\end{document}
+
+How do we make sure that the metadata from the images is sampled
+first, before going thru the cookie cutter.  That is, we wnat to know
+that a a subset/etc request is satisfied, BEFORE we try cutting up the
+individual chunks.  In out-of-order processing this is hard to do.  I
+think that is one reason that I though about moving to the
+Query-subset strategy, because if we define supersets along the way as
+waypoints for the queries, then we have a reseasonable way to do this,
+since the supersets are processed before the subsets.  One problem?
+with this is that we need to have many cookie cutting subroutines,
+however, maybe that really doesn't increase the time of the query.

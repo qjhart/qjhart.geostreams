@@ -1,0 +1,1159 @@
+% e.g.
+% \CopyrightYear{2003} will cause 2002 to appear in the copyright line.
+% \crdata{0-12345-67-8/90/12} will cause 0-12345-67-8/90/12 to appear in the copyright line.
+%
+% --------------------------------------------------------------------------
+% This .tex source is an example which *does* use
+% the .bib file (from which the .bbl file % is produced).
+% REMEMBER HOWEVER: After having produced the .bbl file,
+% and prior to final submission, you *NEED* to 'insert'
+% your .bbl file into your source .tex file so as to provide
+% ONE 'self-contained' source file.
+%
+% ================= IF YOU HAVE QUESTIONS =======================
+% Questions regarding the SIGS styles, SIGS policies and
+% procedures, Conferences etc. should be sent to
+% Adrienne Griscti (griscti@acm.org)
+%
+% Technical questions _only_ to
+% Gerald Murray (murray@acm.org)
+% ===============================================================
+%
+% For tracking purposes - this is V1.3 - OCTOBER 2002
+
+\documentclass{sig-alternate}
+
+% This section needs to be included other ways, 
+% or used to create eps files of the images.
+\usepackage{clrscode}
+\usepackage{acronym}
+\usepackage{epsfig}
+\usepackage{geostreams}
+
+\acrodef{NOAA}{National Oceanic and Atmospheric Administration}
+\acrodef{GOES}{Geostationary Operational Environmental Satellite}
+\acrodef{CIMIS}{California Irrigation Management Information System}
+
+%\acrodef{ct}[\id{DCT}\ ]{Dynamic Cascade Tree}
+\acrodef{ct}[DCT]{Dynamic Cascade Tree}
+\acrodef{adt}{Abstract Data Type}
+\acrodef{RSI}{Remotely Sensed Imagery}
+\acrodef{dsms}{data stream management system}
+\acrodef{dbms}{database management system}
+\acrodef{ogis}{OpenGIS}
+\acrodef{wms} {Web Map Services}
+\acrodef{utm}{Universal Transverse Mercator}
+
+\newcommand{\ct}{\id{DCT}}
+\newcommand{\List}{\id{List}}
+\newcommand{\YList}{\id{2-Key-List}}
+%\newcommand{\meth}{\negthickspace \rightarrow \negthickspace}
+%\newcommand{\meth}{\negmedspace \centerdot}
+\newcommand{\meth}{.}
+
+\newcommand{\inC}[1]{{\id{DCT_{#1}}}}
+\newcommand{\X}{{\inC{X}}}
+\newcommand{\Y}{{\inC{Y}}}
+\newcommand{\A}{{\inC{A}}}
+\newcommand{\cn}{{\inC{cn}}}
+\newcommand{\cnx}{{\inC{cn_x}}}
+\newcommand{\cny}{{\inC{cn_y}}}
+
+\psset{unit=0.2}
+
+\usepackage{pst-3d}
+
+\begin{document}
+%
+% --- Author Metadata here ---
+\conferenceinfo{CIKM}{'04  Washington D.C., USA}
+%\CopyrightYear{2004} % Allows default copyright year (2000) to be over-ridden - IF NEED BE.
+%\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
+% --- End of Author Metadata ---
+
+\title{Indexing a trending geospatial data stream with dynamic cascading trees}
+
+\numberofauthors{1}
+
+% Put no more than the first THREE authors in the \author command
+\author{
+%
+% The command \alignauthor (no curly braces needed) should
+% precede each author name, affiliation/snail-mail address and
+% e-mail address. Additionally, tag each line of
+% affiliation/address with \affaddr, and tag the
+%% e-mail address with \email.
+\alignauthor Quinn Hart and Michael Gertz\\
+%       \titlenote{}\\
+       \affaddr{Department of Computer Science}\\
+       \affaddr{University of California, Davis}\\
+       \affaddr{Davis, CA, USA}\\
+       \email{\{hartqj,gertz\}@cs.ucdavis.edu}
+}
+%\additionalauthors{Additional authors: Jie Zhang (Department of Computer Science, University of California, Davis, email: {\texttt{zhang@cs.ucdavis.edu}})}
+\date{25 May 2004}
+\maketitle
+\begin{abstract}
+  
+  For a streaming geospatial database, probably the most important
+  operation is to efficiently restrict queries to their specified
+  region of interest.  This is similar to typical multi-dimensional
+  queries in traditional databases, except that the data has some
+  important differences.  First, since nearly every query to an
+  remotely sensed image has a restriction, it makes sense to optimize
+  specifically for this operation.  In addition, spatial data is more
+  highly organized than typical tuples in a relational data stream,
+  and finally, the data arrives in different forms, that are dependant
+  on the instrument which is creating the data.
+
+Others to consider~\cite{kainz93model}\cite{roy00effic}
+
+Remotely Sensed imagery comes as stream
+
+Rather than separate into images, operate on the stream directly.
+
+Want to have structures that allow many queries to be handled at one
+time.  Data structures should be dynamic.
+
+Need to maintain the order of the incoming data, take advantage of
+that order with chosen data structures.
+
+Define additions to some existing data structures, segment trees, and
+corner stitches to allow for the creation of these datasets
+
+As an example, the \ac{ogis} \ac{wms} only allow for three explicit
+operations on images from a client query, these are image
+reprojection, scaling, and restrictions.
+
+I need to get an estimate on the amount of data coming from remote
+sensing images.
+
+\end{abstract}
+
+% A category with the (minimum) three required fields
+\category{H.4}{Information Systems Applications}{Miscellaneous}
+%A category including the fourth, optional field follows...
+\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+
+\terms{Delphi theory}
+
+\keywords{Spatial selections, multi-query optimization, streaming data, corner-stitching, segment trees. }
+
+\section{Introduction}
+\label{sec:intro}
+In this paper, we discuss a method for intersecting an incoming image
+data stream with multiple spatial restrictions, that is queries that
+request incoming data streams over a particular area only.  We assume
+that the incoming data stream is organized in one of the three most
+common organizations described below and that queries expect their
+results in the same organization.  In addition, we require a data
+structure that is dynamically updated to support queries being
+inserted and deleted.
+
+In Section~\ref{sec:background}, existing algorithms for this problem
+are discussed. Section~\ref{sec:methodology} describes the methods for
+intersecting queries, with a description of the three most common
+organizations for input data streams.  Section~\ref{sec:performance}
+describes the performance of these tracking methods to more
+traditional methods.  Section~\ref{sec:mods} describes simple
+modifications of this structure for similar problems. Finally,
+Section~\ref{sec:conclusions} gives some conclusions and directions
+for further work.
+
+\section{Motivation and Background}
+\label{sec:background}
+
+New methods in streaming database processing has a great deal of
+potential impact for remotely-sensed imagery.  Besides it's typically
+large bandwidth, imagery has a number of attributes that are different
+from generic streaming data.  An important difference is that
+streaming imagery is highly organized with respect to it's spatial
+components.  This organization varies for different data streams, but
+generally a set of image pixels will come into the stream as a single
+``chunk''.  These chunks may be individual pixels, complete rows of
+pixels, or complete images.  The organization of the pixels within
+theses chunks are well defined.  In addition, the chunks themselves
+usually come in close proximity to one another.
+
+In addition, most queries to remote sensing data stream include a
+restriction of the input stream to a specified region.  Therefore, a
+streaming database processor needs to efficiently intersect these
+incoming chunks of pixels with the 
+
+For streaming remote sensing imagery, the queries rely on the
+organization of the results as well, and the data processor must
+maintain the proper organization of the individual pixels for each
+query as well.
+
+The algorithms described below are simple extensions, or use of
+structures for \emph{stabbing queries}~\cite{samet90}.
+Many data structures have been developed for 1 dimensional interval,
+including among others, interval trees and priority search trees, and
+segment trees~(see \cite{aho74desig-analy,berg00comput-geomet} for
+details).  These structures do not extend to multiple dimensions.  The
+segment tree~\cite{} is a structure for answering stabbing queries
+that can be extending into multiple dimensions, by having additional
+segment trees associated with each node of the previous dimensions
+segment tree.  Dynamically updated segment trees structures have
+been described~cite{}.  Interval skip
+lists~\cite{hanson92interval-skip} also can be extended to multiple
+dimensions~\cite{nickerson94skip}, and have similar properties to a
+segment tree, but are somewhat simpler to maintain their properties.
+
+Treating remotely sensed data as a stream of data is inspired by the
+recent advancements in \acl{dsms}~\cite{babcoc02model-issues,
+  carney02monit-stream, heller00adapt-query}. In such systems, data
+arrives in multiple, continuous, and time-varying data streams and
+does not take the form of persistent relations.  Remotely sensed
+imagery in the fact that space more often the driving variable,
+however with similar concepts.
+
+Several research efforts in the context of \ac{dsms} that focus on
+adaptive query processing
+\cite{chen02desig-evaluat,madden02contin-adapt,shah03flux}, imply that
+adaptive data structures for the spatial restrictions such as the ones
+described can be integrated into \acp{dsms} for a richer complement of
+query processing.
+
+\section{Data Model}
+\label{sec:model}
+
+Although many extensions to relational model for imagery have been
+proposed, we use image algebra~\cite{wilson01handb-comput,
+  ritter99image-algeb}, as the description of the image model in this
+paper.  Image algebra is conceptually simple with a concise
+representation of the operations we describe.
+
+The primary data item in our model is the image.  We model an image as
+described in image
+algebra~\cite{ritter99image-algeb,wilson01handb-comput}.  Image
+algebra is a unified theory for image transformation and analysis.
+Images consist of sets of points and values associated with these
+points.  The \emph{point set} of an image, denoted with bold capital
+upright letter, i.e., \ps{X} \ps{Y} \ps{Z}, is a set of points and an
+associated measure of distance between the points.  Points within a
+point set are denoted with lower case bold letters, i.e., $\pt{y} \in
+\ps{X}$.  In general, there are no restrictions on the shape,
+orderliness, or values that points within a point set take.  However,
+in this papaper we often restrict our discussion to integral points
+regularly spaced apart.  For brevity in the example below, we
+introduce shorthand notation to represent the rectangular points sets.
+
+\begin{align*}
+\ps{P} = \RPSnx{n}{m} &= {i \in \Z[2] \qquad \pt{n} \le \pt{i} \le \pt{x}}  \\
+& \text{where } \pt{n},\pt{x} \in \Z[n] \\
+\pt{n} &< \pt{x} \equiv n_x < i_x and n_y < i_y
+\end{align*}
+
+A convenient notation for an image $\im{a} \in \vs{F}^{\ps{X}}$, is
+the \emph{graph} or \emph{data structure representation}, $\im{a} =
+\{(\pt{x},\im{a}(\pt{x}) : \pt{x} \in \ps{X}\}$.  Here the pair
+$(\pt{x},\im{a}(\pt{x}))$ is a \emph{pixel} of the image.  The first
+coordinate $\pt{x} \in \ps{X}$ is the \emph{pixel location} and the
+second coordinate $\im{a}(\pt{x}) \in \vs{F}$ is the \emph{pixel
+  value} at location \pt{x}.
+
+One of the most common operations on images is the \emph{image
+  restriction} which restricts images to specific point set.  $a|_Z$
+is defined as
+
+\begin{gather}
+  \im{a}|_\ps{Z} \equiv \{(x,a(x)): x \in \ps{Z}\}.
+\end{gather}
+
+In some relational models for images, the above formulation is a
+selection, eg.  $\sel{x \in \ps{Z}}(a)$, others formulate this as a
+spatial join, $a \ltimes_{a.x = Z.x} \ps{Z}$, and others formulate it
+as a function on an \ac{adt}.
+
+Different images admit different possible ordering and structure.  For
+example, some images have non-uniform point set structures, and may
+only be ordered by time.  Active sensors, such as lidar, which take
+point measurements at discrete time steps are such a dataset.  Most
+images however, have a uniform grid of points with associated values.
+Along with this gridded structure, the images have a specific
+ordering. Figure~\ref{fig:lidar} shows an example of two types of
+ point sets associated with images and their ordering.  The most popular
+ordering for images is row-scan order, in which pixels are delivered
+row by row.  For a geostream, the temporal dimension order would
+follow after each complete 2-d spatial image.  Images of this type
+allow for compact descriptions of entire point set by specifying the
+minimum and maximum point values for the set.
+
+\begin{figure}[htbp]
+  \centering
+\subfigure{
+  \begin{pspicture}(0,0)(10,10)
+    \psset{viewpoint=-0.5 -1 1}
+    \ThreeDput[normal=0 -1 0](1,9,1){\psframe[fillstyle=solid,fillcolor=white](8,8)\extent(8,8)}
+    \ThreeDput[normal=0 -1 0](1,6,1){\psframe[fillstyle=solid,fillcolor=white](6,6)\extent(6,6)}
+    \ThreeDput[normal=0 -1 0](4,3,0){\psframe[fillstyle=solid,fillcolor=white](7,7)\extent(7,7)}
+    \ThreeDput[normal=0 -1 0](2,0,2){\psframe[fillstyle=solid,fillcolor=white](4,4)\extent(4,4)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(10,0)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \ThreeDput[normal=1 0 0]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \rput(8,4){\Large x}
+    \rput(0,8){\Large y}
+    \rput(-5,7){\Large t}
+   %\ThreeDput[normal=0 0 1]{\rput(0,10){y}}
+  \end{pspicture}}
+\subfigure{
+  \begin{pspicture}(0,0)(10,10)
+    \psset{viewpoint=-0.5 -1 1}
+    \ThreeDput[normal=0.3 -1 0]{\pscurve[dotstyle=x,showpoints=true]{->}%
+      (1.4,1.5)(1.6,2.6)(1.5,3.7)(1.5,4.8)(1.3,5.9)(1.5,7.0)(1.6,8.2)(1.7,9.3) %
+      (3.2,9.5)(3.0,8.6)(3.0,7.4)(2.9,6.5)(2.8,4.5)(2.6,3.5)(2.8,2.5)(3.2,1.5)%
+      (4.4,1.5)(4.6,2.6)(4.5,3.7)(4.5,4.8)(4.3,5.9)(4.5,7.0)(4.6,8.2)(4.7,9.3) %
+      (6.2,9.5)(6.0,8.6)(6.0,7.4)(5.9,6.5)(5.6,5.5)(5.8,2.5)(6.2,1.5)%
+      (8.2,1.3)(8.5,2.1)(8.5,3.4)(8.6,4.5)(8.4,5.3)(8.3,7.4)(8.4,8.8)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(10,0)}
+    \ThreeDput[normal=0 0 1]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \ThreeDput[normal=1 0 0]{\psline[linewidth=0.3mm]{->}(0,0)(0,10)}
+    \rput(8,4){\Large x}
+    \rput(0,8){\Large y}
+    \rput(-5,7){\Large t}
+  \end{pspicture}
+}
+  \caption{Geostream point set}
+  \label{fig:geostream}
+\end{figure}
+
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure{
+    \begin{FramePic}[10,10]
+      \pscurve[dotstyle=x,showpoints=true]{->}%
+        (1.4,1.5)(1.6,2.6)(1.5,3.7)(1.5,4.8)(1.3,5.9)(1.5,7.0)(1.6,8.2)(1.7,9.3) %
+        (3.2,9.5)(3.0,8.6)(3.0,7.4)(2.9,6.5)(2.8,4.5)(2.6,3.5)(2.8,2.5)(3.2,1.5)%
+        (4.4,1.5)(4.6,2.6)(4.5,3.7)(4.5,4.8)(4.3,5.9)(4.5,7.0)(4.6,8.2)(4.7,9.3) %
+        (6.2,9.5)(6.0,8.6)(6.0,7.4)(5.9,6.5)(5.6,5.5)(5.8,2.5)(6.2,1.5)%
+        (8.2,1.3)(8.5,2.1)(8.5,3.4)(8.6,4.5)(8.4,5.3)(8.3,7.4)(8.4,8.8)
+ \end{FramePic}}
+ \subfigure{
+ \begin{FramePic}[10,10]
+   \psline[linecolor=gray]{->}(0.5,9.5)(9.5,9.5)
+   \psline[linecolor=gray]{->}(0.5,8.5)(9.5,8.5)
+   \psline[linecolor=gray]{->}(0.5,7.5)(9.5,7.5)
+   \psline[linecolor=gray]{->}(0.5,6.5)(9.5,6.5)
+   \psline[linecolor=gray]{->}(0.5,5.5)(9.5,5.5)
+   \psline[linecolor=gray]{->}(0.5,4.5)(9.5,4.5)
+   \psline[linecolor=gray]{->}(0.5,3.5)(9.5,3.5)
+   \psline[linecolor=gray]{->}(0.5,2.5)(9.5,2.5)
+   \psline[linecolor=gray]{->}(0.5,1.5)(9.5,1.5)
+   \psline[linecolor=gray]{->}(0.5,0.5)(9.5,0.5)
+ \end{FramePic}
+}
+\subfigure{
+ \begin{FramePic}[10,10]
+%   \psbox[linecolor=gray](1,1)(5,5)
+%   \psbox[linecolor=gray](3,3)(7,7)
+ \end{FramePic}
+}  
+\label{fig:lidar}
+\caption{%
+%
+  Examples of different point set orderings.  (a) Shows a non-uniform
+  point set ordered by time.  (b) Shows a uniform point set, row-scans
+  order.  }
+\end{figure}
+
+Depending on the ordering of the image, it can be chunked in various
+ways as it's input into the \ac{dsms}.  One way is to chunk each pixel
+separately; that is each tuple is the point and value
+$(\pt(x),a(\pt{x}))$.  For non-homogeneous images this is basically
+the only possible method.  For $n$ rectangular queries, a stabbing
+data structure like an interval tree could choose the matching
+restrictions in $O(\card{a}\lg{n})$ for all $n$ queries, with an index
+structure of $O(n\lg{n})$ size~\cite{spatialalgos}.  Advantages of
+representing images in the \ac{dsms} as a set of points is that it's
+the most general; it requires no order on the images; and tuples
+either match restriction queries or not, they do not need to be
+modified.  The main disadvantages are that there is a large overhead
+in representing the point set, and that satisfying restrictions is
+slow.
+
+Once an order has been described for an image point set other possible
+chunking methods are possible.  For example, for each point in the
+temporal dimension an entire 2-d image could be passed,
+$(x_n,x_x,t,\im{a})$, where the minimum and maximum points, $x_n$, and
+$x_x$ describe the 2-d image point set.  The advantages of this
+formulation is the compact representation of the point set and image.
+the main disadvantage is that for queries that overlap, you get an
+increase in the number and size of tuples in the \ac{dsms} which have
+many redundant pixels.
+
+For row scan images, a convenient chunking is on each input row.  Each
+new chunk corresponds to discontinuities in the original point set.
+With this chunking, the resultant images can be formed by simply
+concatenating all processed tuples together.
+
+Chunking by rows has some of the same problems as chunking by 2-d
+images, in that multiple queries can replicate much of the data, and
+the time in creating new tuples can be considerable.  However, for
+normal representations of images, some of this cost can be eliminated
+by retaining the original input row tuple and reusing that image data.
+The key is that no discontinuities exist in the row of image data.
+New restricted rows can use pointers into the existing image data, and
+only need to create new point sets.  Figure~\ref{fig:rows} illustrates
+multiple restrictions using common image data.
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure[input row]{
+    \begin{FramePic}[10,10]
+    \psframe[fillstyle=solid,fillcolor=gray](0,4)(10,5)
+    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,4)(10,5)
+   \roi[style=query](1,1)(6,6){$S$}
+   \roi[style=query](2,4)(9,8){$T$}
+ \end{FramePic}}
+\quad
+ \subfigure[output tuples]{
+   \begin{pspicture}(10,10)
+     \uput{7pt}[u](5,6){$S:(s_n,s_x,r,i_s)$}
+     \psframe[fillstyle=solid,fillcolor=gray](1,6)(6,7)
+    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,6)(10,7)
+    \uput{7pt}[u](5,2){$T:(t_n,t_x,r,i_t)$}
+    \psframe[fillstyle=solid,fillcolor=gray](2,2)(9,3)
+    \psgrid[gridcolor=lightgray,subgriddiv=0,gridlabels=0,gridwidth=1pt](0,2)(10,3)
+   \end{pspicture}
+ }
+ \caption{%
+   Multiple restriction queries on row chunked images.  By retaining
+   the original image data, all matching restrictions can point into
+   the same image data object.  Only point set information needs to be
+   created for each new tuple.}
+ \label{fig:chunk}
+\end{figure}
+
+\section{Methodology}
+\label{sec:methodology}
+
+The problem with quickly answering multiple queries on an input
+spatial data stream is basically solving a normal \emph{stabbing
+  query} for a point, the incoming data stream, and a set of
+rectangles, the spatial extents of the query.  However, the input
+points are special in that the next stabbing query is typically very
+close to the previous stabbing point.  The goal is to take advantage
+of that trendiness in the stabbing points to develop an index that
+improves search performance for subsequent searches.
+
+The two most common methods for solving stabbing queries in two
+dimensions are multi-level segment trees~(described in
+\cite{berg00comput-geomet}) and r-trees~\cite{guttm84r-tree}.  Using
+multi-level segment trees, one dimension of the region is stored in a
+segment tree, while the second dimension is indexed with an associated
+interval structure for each node in the first segment tree.  Storage
+for these structures can be $O(n\lg{n})$, and search time on a query
+can be $O(\lg^2{n})$.  Dynamic maintenance of such a structure is more
+complicated, and requires larger storage
+costs~\cite{kreveld-concatenavble}.  It is difficult to modify the
+multi-level segment tree to improve results for trending data.  If the
+input stabbing point moves a small distance which doesn't change the
+query results, it still would take $O(\lg{n})$ time to respond.  That
+is because even if every node in the multi-level segment tree
+maintains knowledge of the previous point queried, it would still take
+$\lg({n})$ time to traverse the primary segment tree to discover that
+no changes to the query occurred.
+
+R-trees solve the stabbing query by recursively traversing through
+successive minimum bounding rectangles that include the extent of all
+regions in the sub tree.  R-trees generally have good performance,
+though with a high worst case of $O(n)$.  Since these rectangle
+regions can overlap, there can be no savings from knowing the previous
+stabbing query, as there is no way to know if an entirely new path
+through the segment tree needs to be traversed.  R+-trees\cite{} can
+have better performance for these trending stabbing points, since the
+minimum bounding rectangles are not allowed to overlap and so
+maintaining the previous query can help verify a query hasn't left a
+particular region.  R+-trees have problems with redundant storage,
+dynamic updates, and potential deadlocks~\cite{mano04r-trees}.
+
+A method of dynamically describing a neighborhood of validity for a
+stabbing query was proposed in~\cite{zhang03locationbased}, using
+R-trees.  This method builds a region of validity around a current
+point which can then be used a to verify that a new point will not
+result in a different response.  The technique makes a number of
+additional queries to the r-tree index in order to build this region.
+Like the technique described, below, this could result in a cost
+savings if many subsequent queries are located with the region of
+validity.
+
+The proposed \ac{ct} builds an index that is dynamically tuned to the
+current location the input stream.  The idea is to develop a structure
+that for a given point, maintains the regions around that point where
+the query result will change.  Stabbing queries can determine in
+constant time if the new stabbing point has the same result as the
+previous query and will incrementally update a new result set based on
+the previous set when the result is different.  The structure is
+designed to be small and quickly allow for insertions and deletions of
+new regions.  It assumes some particular characteristics from the
+input stream, notably that the stream changes in a way that many
+subsequent queries will have the same result set so that the cost of
+maintaining a dynamic structure can be amortized over a large set of
+queries.  Section~\ref{sec:performance} describes in more detail the
+performance implications of the regions and input data stream.
+
+Figure~\ref{fig:cascade-tree} shows a complete overview of the data
+structure employed, which we term a \acf{ct}.  The figure shows an
+example set of regions of interest, the most recent stabbing point and
+the associated structures for the \ct.
+
+\begin{figure*}[htbp]
+  \centering
+  \input{dct.pstex_t}
+  \caption{The Dynamic Cascade Tree, DCT}
+  \label{fig:cascade-tree}
+\end{figure*}
+
+These associated structures of \ct, are pleasantly simple extensions
+to a binary tree.  In the example and following pseudo-code we assume
+that we have two simple search structures, \List\ and \YList.  \List\ 
+supports \proc{Insert(key,value)}, \proc{Delete(key)}, and
+\proc{Enumerate}().  Keys in \List\ are unique for each value.  In our
+application we use a simple skip list~\cite{pugh90skip} to implement
+\List.  The \YList\ is incrementally more complex.  It supports
+\proc{Insert}$(\id{key_1},\id{key_2},\id{value})$,
+\proc{Delete}$(\id{key_1},\id{key_2})$ and
+\proc{Enumerate}$(\id{key_1})$ using two keys.  The combination of the
+two keys are unique to each value.  \proc{Enumerate}$(\id{key_1})$,
+enumerates all the values in the \YList, entered with \id{key_1}.  An
+implementation of \YList\ could be a skip list using \id{key_1} where
+each node has an associated skip list using \id{key_2}.  With this
+implementation, for $\YList \meth
+\proc{delete}(\id{key_1},\id{key_2})$, if the deletion causes an empty
+set in the associated \id{key_1} node,
+then that entire node is deleted.%
+\footnote{The structures \List, and \YList\ are defined as above to
+  help conceptualize \ct.  In reality, with little modification to the
+  algorithms presented, the \YList\ can be implemented as a normal
+  \List, simply by using as a key some combination of \id{key_1} and
+  \id{key_2} that still groups all \id{key_1}'s together, for example
+  $\id{key} \gets \id{key_1} <<
+  \func{int}(\lg{\proc{max}(\id{key_2})}+1) + \id{key_2}$.  In order
+  to enumerate all regions at a boundary crossing the algorithms would
+  walk the \List\ comparing right shifted keys which ignore changes in
+  \id{key_2}.  This structure could be simpler to implement and does
+  not affect the performance of the \ct. }
+
+\List\ leaf nodes contain the $key(s)$ and a pointer to the \id{value}.
+Leaf nodes of a \YList\ also have pointers to the next and previous
+nodes in sorted order, adding linked list traversal to the leaf nodes.
+One reason for choosing a skip list implementation, is that the forward
+pointers already exist, and only an additional back pointer is added to
+a normal skip list.
+
+\ct\ maintains three structures, \Y,\X, and \A, and two pointers to the
+current nodes in \Y, and \X, \cnx\ and \cny.  In addition, we assign
+each region inserted into \ct\ with an identifier, so that we can
+delete them later.
+
+\Y\ is a \YList\ that contains all the $y$ endpoints for every current
+region.  \id{key_1}\ is the $y$-value of the endpoint, and \id{key_2}\ is
+the \id{r_{id}}.  Since multiple regions can have the same endpoints,
+at each leaf node an additional \List\ maintains the regions with that
+endpoint, keyed with \id{r_{id}}.
+
+\X\ is another \YList, with keys on the endpoints $x$-values, and
+\id{r_{id}}.  \X\ does not contain the endpoints of all the regions in
+\ct, but only of the regions which have $y$ domains that contain the
+value of the current $y$-node, \cny.  Again, the leaf nodes of \X\ 
+contain \List\ structures, that hold multiple regions with the same
+endpoint.
+
+\cny\ and \cnx\ are simply two pointers to the node within both \Y\ and
+\X\ corresponding to the location where the most recent stabbing point
+fell.  Since both \X\ and \Y\ maintain all the endpoints of in the $x$
+and $y$ domains, the leaf nodes correspond to half-open line segments
+of those domains ranging from $[key_i,key_{i+1})$, for any node $i$,
+in either \X\ or \Y.
+
+\A\ is the final \List, which contains all the currently selected
+regions.  Just as \X\ contains only subset of the regions of \Y\ which
+contain the \cny\ node, \A\ contains the subset of \X\ where the \cnx\ 
+node is contained by the $x$ domains of each region.  The \Y, \X, and
+\A\ make up a cascade of indexes each a subset of the previous index
+structure.
+ 
+Figure~\ref{fig:initialize} shows the pseudo-code for initializing
+\ct\ which creates the internal data structures and two dummy nodes
+outside the valid range of the regions.  This allows for \cnx, and
+\cny\ to be defined.
+
+\begin{figure}[htbp]
+  \centering
+\begin{codebox}
+\Procname{$\proc{Initialize}(\id{np})$}
+\li \Comment Input: Current point, \id{np}.
+\li \Comment Ouput: New search structure, \id{XY\A}.
+\li $\Y \gets \YList \meth \proc{new}()$
+\li $\id{y_{node}} \gets \Y \meth \proc{insert}(-\infty,\const{nil})$
+\li $\X \gets \YList \meth \proc{new}()$
+\li $\id{x_{node}} \gets \X \meth \proc{insert}(-\infty,\const{nil})$
+\li $\A \gets \List \meth \proc{new}()$
+\li $\cn \gets [\id{y_{node}},\id{x_{node}}]$
+\li \Return \id{DCT}
+\End
+\end{codebox}
+\caption{Initialization of \ac{ct}}
+\label{fig:initialize}
+\end{figure}
+
+Figure~\ref{fig:insert} shows the pseudo-code inserting and deleting
+queries from \ct.  Insertion and deletion are also simple routines,
+where regions are first inserted and deleted into \Y, and then
+successively into \X\ and \A, if the range of the regions are
+appropriate.  \proc{Delete-Region}\ takes as input a region.  If
+deleting a region, \id{q}\ by it's identifier, $\id{q}_{id}$ is also
+required, an additional structure on all region identifiers is
+required, as \A\ only maintains pointers to the regions in the
+currently active query.
+
+\begin{figure}[htbp]
+  \centering
+\begin{codebox}
+\Procname{$\proc{Insert-Region}(\id{DCT},\id{q})$}
+\li \Comment Input: Search structure, \id{DCT}, region \id{q}.
+\li \Comment Ouput: \id{q} is inserted into \id{DCT}.
+\li $\Y \meth \proc{insert}(\id{q}_{y_n},\id{q}_{id},\id{q})$
+\li $\Y \meth \proc{insert}(\id{q}_{y_x},\id{q}_{id},\id{q})$
+\li \If $(\id{q}_{y_n} <= \cny_{key}$ and $\id{q}_{y_x} > \cny_{key})$
+\li   \Then
+\li   $\X \meth \proc{insert}(\id{q}_{x_n},\id{q}_{id},\id{q})$
+\li   $\X \meth \proc{insert}(\id{q}_{x_x},\id{q}_{id},\id{q})$
+\li   \If $(\id{q}_{x_n} <= \cnx_{key}$ and $\id{q}_{x_x} > \cny_{key})$
+\li     \Then
+\li       $\A \meth \proc{insert}(\id{q}_{id},\id{q})$
+     \End
+   \End
+\End
+\end{codebox}
+
+\begin{codebox}
+\Procname{$\proc{Delete-Region(\id{DCT},\id{q})}$}
+\li \Comment Input: Search structure, \id{DCT}, region \id{q}.
+\li \Comment Ouput: \id{q} is deleted from \id{DCT}
+\li $\Y \meth \proc{delete}(\id{q}_{y_n},\id{q}_{id})$
+\li $\Y \meth \proc{delete}(\id{q}_{y_x},\id{q}_{id})$
+\li \If $(\id{q}_{y_n} <= \cny_{key}$ and $\id{q}_{y_x} > \cny_{key})$
+\li   \Then
+\li   $\X \meth \proc{delete}(\id{q}_{x_n},\id{q}_{id})$
+\li   $\X \meth \proc{delete}(\id{q}_{x_x},\id{q}_{id})$
+\li   \If $(\id{q}_{x_n} <= \cnx_{key}$ and $\id{q}_{x_x} > \cny_{key})$
+\li     \Then
+\li       $\A \meth \proc{delete}(\id{q}_{id})$
+     \End
+  \End
+\End
+\end{codebox}
+\caption{Inserting and deleting regions from \ac{ct}}
+\label{fig:delete}
+\end{figure}
+
+It should be clear that the structures \X\ and \A\ need to be
+maintained both when new regions are inserted and deleted, but also
+and more importantly, when the next stabbing point is used as a query.
+Since \X\ only contains regions with overlapping $y$ domains, when a
+new query point arrives in which a $y$ boundary for any region in the
+\ct is crossed, then the \X\ structure needs to be modified to account
+for the regions to be included or deleted from consideration.  A
+similar method needs to be associated with boundary crossings in the
+$x$ dimension, while traversing \X\ and modifing \A.
+
+The algorithm for reporting resultant regions for a new stabbing query
+begins by traversing the \YList\ \Y\ in the $y$ direction from the
+current node,\cny\ to the node containing $\id{np_y}$ going through
+every intermediate node using the linked list access on the leaf nodes
+of \Y.  At each boundary crossing, as regions are entered or exited,
+those regions need to be added into the \X\ \YList. When the point has
+traversed to the node containing $\id{np_y}$, then traversal begins in
+the $x$ direction, moving from \cnx to the node containing
+$\id{np_x}$.  As with \Y, when the traversal hits $x$ boundary points,
+then the entered regions are added into \A\ and the exited regions are
+deleted from \A.  When the traversal reaches $\id{np}$, then \cn
+contains pointers to the nodes containing the newly current point, \X\ 
+contains $x$ endpoints to all the regions with $y$ domains that
+encompass, $\id{np_y}$, and \A\ contains all the regions that contain
+\id{np}.  \A\ is then enumerated to report all the queries for the new
+stabbing poing, \id{np}.
+
+Figure~\ref{fig:update} shows an example of an update of the
+structures within \ct, on reporting queries for a new stabbing point.
+This extends the example of Figure~\ref{fig:cascade-tree}.  In this
+example, the new point has crossed a $y$ boundary that contains two
+region endpoints, $c$ and $f$.  As the point is traversed in the $y$
+direction to this new point, the $x$ endpoints of region $c$ are
+removed from \X, and the endpoints of $f$ are added to \X.  When the
+endpoints of these regions are deleted, the regions themselves are
+also deleted from \A, and similarly for insertions.  In the example,
+$c$ is deleted and $f$ inserted into \A.  After reaching \id{np_y},
+\X\ is traversed in the $x$ direction.  In the example, this results
+in $e$ being deleted from \A.  Finnally, \A\ is enumerated, completing
+the procedure.
+
+Figure~\ref{fig:report} gives the pseudo-code for the
+\proc{Report-Regions}\ procedure, which reports regions for a new
+stabbing point, while updating the dynamic structures of the \ct.
+Lines~\ref{li:report-y-loop-begin} to lines~\ref{li:report-y-loop-end}
+update the \X\ and \A\ structures due to boundary crossings in the $y$
+dimension.  Only one of the \kw{while}\ loops are executed at each
+invocation.  Lines~\ref{li:report-x-loop-begin} to
+lines~\ref{li:report-x-loop-end} perform a similar function updating
+the \A\ structure as the point is traversed to \id{np_x}.  After
+traversing to \id{np}, the updated set of matching regions are
+contained in \A, and line \ref{li:report-return} reports those
+regions.
+
+\begin{figure*}[htbp]
+  \centering
+  \input{move.pstex_t}
+  \caption{Stabbing point moving in \proc{Report-Regions}}
+  \label{fig:update}
+\end{figure*}
+
+
+\begin{figure}[htbp]
+  \centering
+\begin{codebox}
+\Procname{$\proc{Report-Regions(\id{DCT},\id{np})}$}
+\li \Comment Input: Search structure, \id{DCT}, new point location, \id{np}.
+\li \Comment Ouput: List of satisfied queries.
+\li \Comment Walk to new $y$ value, adding/deleting $x$-ranges
+\li \While $(\id{np}_y < \cny \meth \id{key})$ \label{li:report-y-loop-begin}
+\li   \Do
+     \kw{foreach} $\id{q} \in \Y \meth \proc{enumerate}(\cny)$
+\li       \Do
+         \If $\id{q}_{x_n} = \cny \meth \id{key}$
+\li            \Then
+\li               $\X \meth \proc{delete}(\id{q}_{x_n},\id{q}_{id})$
+\li               $\X \meth \proc{delete}(\id{q}_{x_x},\id{q}_{id})$
+\li               \Comment Remove from \A\ if exists
+\li               $\A \meth \proc{delete}(\id{q}_{id})$
+\li            \Else
+\li               $\X \meth \proc{insert}(\id{q}_{x_n},\id{q}_{id},\id{q})$
+\li               $\X \meth \proc{insert}(\id{q}_{x_x},\id{q}_{id}),\id{q})$
+\li               \If $(\id{q}_{x_n} <= \id{np_x} and \id{q}_{x_x} > \id{np_x})$
+\li                  \Then 
+\li                     $\A \meth \proc{Insert}(\id{q_{id}},\id{q})$
+                     \End
+           \End
+      \End
+\li   $\cny \gets \cny \meth \proc{prev}$
+  \End
+\li \While $(\id{np}_y > \cny \meth \proc{next} \meth \id{key})$
+\li   \Do
+     $\cny \gets \cny \meth \proc{next}$
+\li     \kw{foreach} $q \in \Y \meth \proc{enumerate}(\cny)$
+\li       \Do
+         \If $q_{y_x} = \cny \meth \id{key}$
+\li            \Then
+\li               $\X \meth \proc{delete}(\id{q}_{x_n},\id{q}_{id})$
+\li               $\X \meth \proc{delete}(\id{q}_{x_x},\id{q}_{id})$
+\li               \Comment Remove from \A\ if exists 
+\li               $\A \meth \proc{delete}(\id{q}_{id})$
+\li            \Else
+\li               $\X \meth \proc{insert}(\id{q}_{x_n},\id{q}_{id},\id{q})$
+\li               $\X \meth \proc{insert}(\id{q}_{x_x},\id{q}_{id},\id{q})$
+\li               \If $(\id{q}_{x_n} <= \id{np_x} and \id{q}_{x_x} > \id{np_x})$
+\li                  \Then 
+\li                     $\A \meth \proc{Insert}(\id{q_{id}},\id{q})$
+                     \End
+            \End
+       \End
+   \End                                     \label{li:report-y-loop-end}
+\li \Comment Walk to new $x$ value, adding/deleting active queries
+\li \While $(\id{np}_x < \cnx \meth \id{key})$ \label{li:report-x-loop-begin}
+\li   \Do
+     \kw{foreach} $\id{q} \in \X \meth \proc{enumerate}(\cnx)$
+\li       \Do
+         \If $q_{x_n} = \cny \meth \id{key}$
+\li            \Then
+\li               $\A \meth \proc{delete}(\id{q}_{id})$
+\li            \Else
+\li               $\A \meth \proc{insert}(\id{q}_{id})$
+            \End
+         \End
+       \End
+\li     $\cnx \gets \cnx \meth \proc{prev}$
+   \End
+\li \While $(\id{np}_x > \cnx \meth \proc{next} \meth \id{key})$
+\li   \Do
+     $\cnx \gets \cnx \meth \proc{next}$
+\li     \kw{foreach} $q \in \X \meth \proc{enumerate}(\cnx)$
+\li       \Do
+         \If $q_{x_x} = \cnx \meth \id{key}$
+\li            \Then
+\li               $\A \meth \proc{delete}(\id{q}_{id})$
+\li            \Else
+\li               $\A \meth \proc{insert}(\id{q}_{id})$
+            \End
+       \End
+   \End \label{li:report-x-loop-end}
+\li \Return $\A \meth \proc{enumerate}$ \label{li:report-return}
+\End
+\end{codebox}  
+  \caption{Reporting overlapping regions in \ac{ct}}
+  \label{fig:report}
+\end{figure}
+
+
+\section{Performance}
+\label{sec:performance}
+
+Inserting and deleting new regions into the structure take $O(\lg{n})$
+time as the region is potentially added to structures \X, \Y, and \A.
+The data structure is basically made up from three simple tree like
+which can be implemented in $O(n)$ space.
+
+The performance of \proc{Report-Regions}\ is highly dependant on the
+location of the regions, the trending properties of the stream, and
+the interaction of the two parameters.  For $m$ executions of
+\proc{Report-Regions}, the average time of execution can range from
+$O(1)$ in the best case to $O(n+k\lg{k})$, with a modification
+described below, see Figure~\ref{fig:mod}, in the worst where $k$ is
+the number of matching queries.  Reasonable experiments could be
+designed that would approach either of these limits.  Instead, there
+are some rules to consider for the application of this data structure.
+
+
+{\bf Number of insertions and deletions of regions}
+%
+The \id{DCT}\ data structure is generally robust to many insertions
+and deletions of regions of interest.  Both items take $O(\lg{n})$
+time only and are simple to maintain dynamically.
+
+{\bf Number of boundaries crossed}
+%
+This data structure is designed for trending data, which can most
+quantitatively be measured with the number of region boundary
+crossings from one query point to the next. This structure works best
+when the number of query boundaries crossed on subsequent input points
+is not large.  Obviously, when no boundaries are crossed, then no
+internal lists are modified, and \proc{Report-Regions} runs in $O(k)$
+time.  When a single boundary is crossed, then each region in the
+crossed $y$ node needs to be inserted or deleted from the \X\ 
+structure.  This is true for regions that don't overlap the new
+stabbing point \id{np}, and don't contribute the \A\ structure.  The
+cost of \proc{Report-Regions} in this case can be as high as
+$O(n\lg{n} + k)$, since many non-overlapping regions are inserted
+into the \X\ structure.  There is no performance difference in whether
+the crossing occurs at a single boundary with many regions at that
+node, or over many boundary crossings with few regions.
+
+Obviously at least one boundary crossing is necessary to fully index a
+region.  The \id{DCT}\ data structure indexes lazily in the sense that
+on insertions of new regions, it doesn't index on the $x$ values of a
+region at all, so boundary crossing costs merely make up the time to
+index on the $x$ values of regions.  The problem with the \ct is that
+these costs can come many time is the course of the travel of the
+input stabbing point.  Rather than indexing these values once,
+reindexing a subset of points multiple times as boundaries are
+crossed.  The hope is that once in a new set of regions, many
+subsequent queries will be made from the within that region, and the
+constant time response to those stabbing queries will make up for the
+extra costs of maintaining a dynamic index.
+
+{\bf Trajectory of the trending data point}
+%
+Another aspect affecting performance is the trajectory of the input
+point stream.  For example, consider input streams with trajectories
+that are increasing or decreasing monotonicly in $x$ and $y$.  In
+these cases, regions are put into the \X\ structure at most one time.
+This means that the total time maintaining the \X\ structure is at
+most $O(n\lg{n})$, which means that the dynamic maintenance of the \X
+structure takes no more time than most static methods would require.
+The total cost of $m$ stabbing queries over that trajectory would be
+$O(n\lg{n}+mk)$ where $k$ is the average number of regions per query.
+For a segment tree implementation, the total cost would be
+$O((n\lg{n}+m\lg^2{n}+mk)$, which includes the static cost of
+maintaining a segment tree and does not include extra costs for
+dynamically maintaining that segment tree.
+
+On the other hand, data with a more erratic trajectories can result in
+poor performance.  Consider a point which repeatably crosses a single
+boundary containing all $n$ region boundaries.  Again, each iteration
+would require $O(n\lg{n})$ time, as the \X\ and \A\ structures are
+both repeatably made up and torn down.
+
+Also, the \ct\ as described in the example above favors data that
+trends in the $x$ direction over data that trends in the $y$
+direction.  The reason for this is basically that more regions added
+into the \X\ structure are ended up being reported, and the dynamic
+structure building is not wasted.  Also, there are fewer insertions
+and deletions in the \X\ structure in the first place.  When the
+stabbing point \id{np}, crosses a boundary in the $x$ direction, it
+still takes $O(\lg{n})$ time to statisfy, as it updates \A, but this
+is more useful work in updating \A\ than a $y$ crossing boundary,
+which can spend wasteful time adding points into \X\ that might never
+be traversed into.  Whereas, for a $y$ trending stabbing tractectory
+can have a worst case time in \proc{Report-Regions}\ of
+$O(n\lg{n}+k)$, the worst case time in $x$ trending stabbing points is
+$O(n+k)$, when worthless insertions into \A\ are skipped as described
+below.
+
+This shows that order in the cascade is very important, and dimensions
+that see more boundary crossings for subsequent stabs into the \ct,
+should be pushed deeper into the structure.  boundary crossings are of
+course dependant on the trajectory of the stabbing point, and the
+organization of the regions with the \ct.
+
+{\bf Skipping worthless insertions}
+%
+As mentioned, when the next point of the input stream trends a long
+way with respect to the number of query boundaries traversed, then the
+time for \proc{Report-Regions} goes up to at least the number of
+regions contained in all the boundaries crossed.  Regions that are
+both entered and exited in the course of a single traversal to
+\id{np}, are even worse, as their endpoints are needlessly added into
+and subsequently deleted from \X, at a cost of up to $O(\lg{n})$,
+before it's ever queried, but this can easily be remedied, but for
+clarity was left out of the initial \proc{Report-Regions} algorithm.
+When encountering a region at a $y$ boundary crossing, simply check
+that it will remain a valid region when \id{np} has finished it's
+traverse, before inserting into the \X\ structure.  This prevents
+wasted index modifications, but doesn't help with the basic problem of
+long point traverses, or input points that cross back and forth across
+expensive $y$-boundaries.  Figure~\ref{fig:mod} shows the
+modifications made to \proc{Report-Regions} in
+lines~\ref{li:report-y-loop-begin} to
+lines~\ref{li:report-y-loop-end} in Figure~\ref{fig:report}.
+
+\begin{figure}[htbp]
+  \centering
+\begin{codebox}
+%\setlinenumber{li:report-y-loop-begin}
+\zi \While $(\id{np}_y < \cny \meth \id{key})$
+\zi   \Do
+     \kw{foreach} $\id{q} \in \Y \meth \proc{enumerate}(\cny)$
+\zi       \Do
+         \If $(\id{q}_{x_n} = \cny \meth \id{key})$
+\zi            \Then
+\zi               \If $(q_{x_x} < \id{np}_y)$
+\zi                 \Then
+\zi                   $\X \meth \proc{delete}(\id{q}_{x_n},\id{q}_{id})$
+\zi                   $\X \meth \proc{delete}(\id{q}_{x_x},\id{q}_{id})$
+\zi               $\A \meth \proc{delete}(\id{q}_{id})$
+\zi                  \Else
+\zi                   $\X \meth \proc{insert}(\id{q}_{x_n},\id{q}_{id})$
+\zi                   $\X \meth \proc{insert}(\id{q}_{x_x},\id{q}_{id})$
+                  \End
+               \End
+       \End
+\zi     $\cny \gets \cny \meth \proc{prev}$
+   \End
+\end{codebox}
+\caption{
+%
+  Example modification to Report-List to skip unneeded insertions into \X
+%
+}
+  \label{fig:mod}
+\end{figure}
+
+\section{Simple Modifications to the dynamic cascading tree}
+\label{sec:mods}
+
+In Section~\ref{sec:methodology}, discussion centered on answering a
+simple stabbing query for a single point and a number of regions in a
+two dimensional space.  This basic framework can undergo some simple
+modifications to handle a number of similar types of queries.
+
+{\bf Non-point stabbing queries}
+%
+The first general area is for regions other than points.  The stabbing
+query can be changed from a single point to a constant size rectangle
+very simply.  In this case, track the center location of the stabbing
+rectangle, and when inserting new regions of interest, extend the
+boundaries by half the width and height of the rectangle queries.
+Intersections of the modified regions and the stabbing point will
+coincide with intersections of the original regions and the rectangle
+query.  For more dynamic stabbing rectangles, track both edges of the
+stabbing rectangle in both the \Y\ and \X\ structures.  The leading
+edge of the lines in $y$ will track insertions into \A\ and the
+trailing edges will track deletions.  Leading and trailing are with
+repsect to the previous stabbing rectangle.  Rectangles that are
+growing in size from the previous rectangle may have two leading
+edges, and shrinking rectangles will have two trailing edges.  A
+similar strategy is used for mapping the \X\ structure to the \A\ 
+structure.  This does not affect the time complexity of the
+\proc{Report-Regions}\ algorithm, or the size of \ct.
+
+Many remote sensing image data comes in a row by row scheme.  For that
+special case of a general stabbing rectangle, use and maintenance of
+the \Y\ structure remains as in the stabbing point example, and only
+the \X\ structure is modified for different lengths of the individual
+rows of data.
+
+{\bf Adding Dimensions like time}
+%
+Adding an additional dimension is a simple extension by adding another
+intermediate layer to the \X, \Y, \A\ cascade.  For example, a time
+dimension on a rectangle query, or in this instance a cube query,
+could be added.  Dimensions that run into infinity, which is common
+for temporal queries, are not more complex in this structure, as they
+can be in other representations.  As discussed in
+Section~\ref{sec:performance}, it's best to order the dimensions so
+the most varying is on the deeper levels of the \ac.  The monotonic
+increase of time would make it a good candidate for the level before
+the \A\ structure.  However, if a systems contained regions with
+mostly unbounded temporal queries, then it could also be located at
+the first level.  One nice feature with making time the first
+structure of the cascade, is that it also does double duty in
+providing a structure to prune regions that have expired.  For a
+geo-spatial example, if incoming pixels are timestamped, then new
+stabbing points that have identified regions whose time extent has
+ended, can remove them from the time structure, $\id{ct}_T$, as well
+as the other cascaded structures.
+
+For real-time streaming queries, a time structure can be implemented
+as something like a priority queue rather than as a \YList, since next
+stabbing points cannot go back in time.
+
+{\bf Multiple streaming locations}
+%
+The discussion in Section~\ref{sec:methodology} considers only a
+single input strabbing stream.  It's possible to have more than one
+input point, but since structures \X\ and \A\ are both dynamically
+built with respect to current stabbing point, then 
+
+
+{\bf Speed over Size}
+%
+In Section~\ref{sec:performance} the poor performance of this
+structure for certain trending data was discussed.  In particular, when
+data moves back and forth among a large number of regions without
+staying in those regions for any length of time, then there is a large
+cost associated with building up and tearing down the \X\ structure,
+without any amortization of that cost over a larger number of queries.
+If the size of the data structure is of less importance, then the time
+spent building up these intermediate structures can be done once and
+saved for subsequent queries.  The idea is that instead of having one
+\X\ structure, you have an \X\ for each boundary in the \Y\ structure.
+This increases the size of the structure to $O(n^2)$, but all
+subsequent queries can be answered without rebuilding.  
+
+To continue to tweak the data structure for this example, since a
+different \X\ structure is stored in each $y$ node, it's no longer
+required that the \Y\ structure is traversed node by node to the new
+location, since that traversal is only needed to maintain a single \X
+structure.  Instead, the new point can be reached by greater hops, for
+example by using a balanced tree with leaf nodes doubly linked as an
+implementation of the \YList.  Movements larger than a single hop use
+the tree to navigate to the new point.  For this structure, all
+queries at or within one boundary to the current location would take
+$O(k)$ time, and all others would take $O(\lg{n}+k)$.  Because of all
+the \X\ structures, region insertion and deletion times would be much
+greater though, $O(n\lg{n})$.  The more static nature of this structure
+would allow multiple input stream locations to use one index however,
+and each would only need to maintain the list for pointers to current
+nodes within the structure.
+
+{\bf Non-spatial multi-dimensional data}
+%
+The focus has been on spatial data with $x$ and $y$ coordinates.
+However, these techniques could be equally well applied as a general
+multi-dimensional data space.  The obvious modifications could be made
+and extended to $n$ dimensions as outlined in Section~\ref{time}.  One
+important issue to address is the order of the cascade of \List
+structures.  As described in~\ref{sec:performance}, if regions are
+dispersed somewhat equally, it's generally best to move the most
+varying parameter to the end of the cascade, and move the least
+varying to the top.  This structure is also appropriate for range
+queries over a single dimension over trending data by maintaining only
+the top \YList.  Since the index sizes are relatively small, it's
+conceivable that a specialized trending stream \ac{dbms} could be built
+which consistently maintains one dimensional \id{DCT}\ structures, and
+then dynamically begins to build 2 or $n$ dimensional structures when
+queries requesting such regions are instantiated.  The advantage of
+this method is that the structures are no longer maintained as the
+queries requesting those regions are deleted.  In addition, statistics
+could be maintained by the one-dimensional structures in order to best
+predict the order of cascade for dimensions.
+
+\section{Geostationary Operational Environmental Satellite Example}
+\label{sec:goes}
+
+As an example of a good input stream, this data structure was
+discovered while developing a prototype implementation of our
+geostreams server.  We are designing our geostreams server to be a
+service connecting users to real-time remotely sensed data products.
+The prototype server will allow users to specify queries using the
+\ac{ogis} \acl{wms}.  This standard allows for only a very narrow set
+of query operations, limited to identifying a stream and adding
+spatial selections, temporal selections, and scale parameters. This
+limited set satisfies a large class of remote sensing users who are
+primarily interested in the original remotely sensed data, but cut out
+for their specific spatial and temporal interest.  Our prototype
+streaming data target is the \ac{NOAA} \ac{GOES} West weather satellite imager
+sensor~\cite{noaa-goes}.  \ac{GOES} offers a continuous stream of data for
+regions from the continental US, to a hemisphere centered near Hawaii.
+Data from the \ac{GOES} visible channel comes in blocks that contain 8 rows
+of data.  The number of columns in a row varies from frame to frame.
+An entire frame of data is reported 8 rows at a time, from North to
+South.  New frames start from their most Northern extents.  On average
+there are about 5125 rows per frame, which means that for every frame
+start requiring a long traverse through the \ct\ structure, there are
+about 640 small steps downward in the $y$ direction.  Query regions
+also tend to be approximately square regions covering relatively large
+extents.
+
+This dataset is well suited to the \ct.  In each frame, the data
+trends only in the downward direction and incrementally.  Therefore,
+endpoints are only added into the \X\ structure one time, limiting the
+maintenance time to $O(n\lg{n})$.  Actually, for normal \ac{GOES} data, the
+starting column of the each row does not change within a frame and the
+\Y\ and \A\ structures are sufficient for determining which regions
+overlap any given row.
+
+With respect to \ac{GOES} data, the reason for extending the structure to
+account for more general trending data has to do with projection
+systems.  Like most remotely sensed imagery, the original data is in
+it's own projection system, while users would like to have data
+streamed in a projection system of their choice, \ac{utm} for example.
+Re-projection is an expensive operation that should be avoided for
+data not answering a specific query.  Our plan to allow users to
+specify queries in their projection system requires have a number of
+\ct\ structures, one for each input projection system.  All query
+regions will be projected into the \ac{GOES} system, and roughly described
+with a bounding box.  For each projection included with a region
+identified in this first \ct\ structure, the bounding box of the
+incoming rows of \ac{GOES} data will be re-projected into that system, and
+represented with a new bounding box.  This box will be used to
+identify the final intersections of the incoming \ac{GOES} stream with the
+regions of interest.  In those other projection schemes, the incoming
+rows will still trend in a smooth line, but in both $x$ and $y$
+coordinates.
+
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+We have described a simple data structure that is designed to follow
+trending data from an input stream.  The focus has been on a two
+dimensional stabbing query, but we have offered various the
+modifications to a number of related problems.  Theoretical and rule
+of thumb performance bounds have been discussed.
+
+%ACKNOWLEDGMENTS are optional
+\section{Acknowledgments}
+This work was performed in part under NSF grant  XX-XXX, 
+
+\bibliographystyle{plain}
+\bibliography{../geostreams}
+\balancecolumns
+\end{document}
+
+Check citeseer.nj.nec.com/overmans87efficient.html
+
+Here's a list of papers with Corner stitching referenced.
+http://citeseer.ist.psu.edu/context/112399/0
+
+Heres the Link for the database
+
+http://libils.ucdavis.edu/F/CP5YMEEA8E8MYLPICE9KENVFCUYPAA45YXGR35MMYEY5FCGRAU-30038?func=item-global&doc_library=UCD01&doc_number=002242745&year=&volume=&sub_library=ELECT
+
+TODO 
+Read r+-trees to verify them
+Read some CIKM papers for guidance
+Get some more expected results for the structure
+  Look at experiments in zhang.

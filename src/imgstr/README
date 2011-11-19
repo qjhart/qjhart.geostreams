@@ -1,0 +1,143 @@
+Geostreams Project
+Module: imgstr - image stream generation
+README
+Carlos A. Rueda-Velasquez
+$Id: README,v 1.5 2005/07/06 02:26:11 crueda Exp $
+
+Contents
+	Purpose
+	Design
+	Schematic usage
+	
+Purpose
+
+This module allows to create image streams out of data available in a
+scheme resembling that of the GVAR stream. Each transmitted token
+contains a row of pixel values belonging to a specific frame and
+channel. Multiple channels can be transmitted in one image stream.
+    
+Design
+
+This module defines and uses the following main concepts:
+
+    Rectangle
+    A Rectangle specifies an area in a coordinate space that is
+    enclosed by the Rectangle object's top-left point (x, y) in the
+    coordinate space, its width, and its height.
+    Rectangles are used to specify reference spaces and frame extensions.
+    
+    ReferenceSpace
+    Defines the space (currently a rectangle) in which all frames
+    associated to a given stream are expected to be contained.
+    This concept is more useful for clients interested in doing some
+    kind of visualization, like the applet viewer, since they will use
+    this to allocate the area in which incoming images (rows) will be
+    displayed. In our case, this rectangle will be the bounding box
+    of the full disk.
+
+    ChannelDef
+    Describes the geometry of a particular channel in a stream. This
+    geometry is given by the size of the pixel in this channel. This
+    size is measured in terms of the pixel resolution of the reference
+    space associated to the stream.
+    Multiple channels can be associated to a stream.
+    
+    FrameDef
+    Describes the geometry (currently a rectangle) of a particular
+    frame in a stream. An ID is used to identify a frame.
+    
+    Format
+    An enumeration with codes for possible output stream formats.
+    
+    ImgStream
+    An interface describing an output image stream. A factory method is
+    used to create instances of concrete implementations of this
+    interface according to a particular format and a reference space.
+
+    Row
+    A row of pixel values belonging to a particular frame and channel.
+    
+    
+Schematic usage
+
+A typical usage of the imgstr module involves the following steps:
+
+	1- Create a StreamWriter subclass to do the actual writing of data.
+	
+	2- Set up the format and reference space for the output stream.
+	
+	3- Specify the geometry for each channel that is going to be
+	   sent through the stream. Each channel is assigned an ID for
+	   subsequent reference.
+	   
+	4- Send out the incoming rows belonging to the desired channels.
+	   Besides its pixel data, each row needs to include the frame and
+	   channel it belongs to. For each new incoming frame, a call to
+	   startFrame must be done to notify about the geometry of the
+	   frame. A frame ID is used to reference to the frame.
+	
+The following is a pseudo-code illustrating how this module can be
+used to create one output image stream. For an example with actual
+xecutable code, see test.cpp.
+
+    #include "ImgStream.h"
+    
+	class MyStreamWriter : public StreamWriter {
+		MyData myData;
+		
+		MyStreamWriter(MyData myData) : myData(myData) {
+			...
+		}
+		
+		int writeBuffer(const void* buf, int nbytes) {
+			// do whatever is necessary to write the buffer using myData
+			// ...
+			
+			if ( all_went_OK )
+				return 0;
+			else
+				return different_from_zero;
+		}
+	}
+	
+	myData = ...;
+    MyStreamWriter writer(myData); 
+    Format format = ASCII_FORMAT;
+    ReferenceSpace rs(...);
+    ImgStream* imgStream = ImgStream::createImgStream(&writer, format, rs);
+    
+    // notify the stream about the channels we want to include:
+    desired_channels = ...select channels to be included in the stream
+    for each channel in desired_channels {
+       int channel_id = identify the channel;
+       imgStr->writeChannelDef(ChannelDef(channel_id, ...));
+    }
+    
+    while ( keep_running ) {
+       read some data from the incoming stream
+       if a new frame is going to start {
+          int frame_id = identify the frame;
+          Rectangle rect(...);    // rectangle associated to frame
+          imgStr->startFrame(FrameDef(frame_id, rect));
+       }
+       
+       if a new row of data is available {
+          int frame_id = identify the corresponding frame;
+          // (I assume each incoming row of data contain all available
+          // channels.)
+          for each channel in desired_channels {
+             int channel_id = identify the corresponding channel;
+             int x = ...x location of row
+             int y = ...y location of row   
+             int w = ...number of pixels in row   
+             uint16* v = ...pixel values for this channel
+             Row row(frame_id, channel_id, x, y, w, v);
+             imgStr->writeRow(row);
+          }
+       }
+    }
+    
+    delete imgStr;
+    
+    
+

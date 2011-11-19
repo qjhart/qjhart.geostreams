@@ -1,0 +1,27 @@
+#!/bin/sh
+# 
+# Runs the mngstream client updater
+# Carlos A. Rueda
+# $Id: run,v 1.3 2004/07/28 01:15:14 crueda Exp $
+#
+export JAVA_HOME=/usr/local/j2sdk1.4.2_04
+PATH=.:$JAVA_HOME/bin:$PATH
+
+JAVA_OPTS="-Djava.awt.headless=true -Xincgc"
+
+rm -f nohup.out
+if [ "$1" == "stdin" ]; then
+	#
+	# Use "piped" way:  ``-url -''
+	# Note that I use ``nohup'' for the java command.
+	# Well, I'm not using this mechanism anyway--seems unstable.
+	#
+	./gvnetapi2 169.237.153.55 - 9999999 2> /dev/null | \
+	        nohup java $JAVA_OPTS -jar DIST/mngstream.jar \
+			-url - -delay 60 &
+else
+	#
+	# go through the default URL address
+	#
+	nohup java $JAVA_OPTS -jar DIST/mngstream.jar -delay 60 &
+fi

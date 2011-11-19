@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<jnlp 
+  spec="1.0+" 
+  codebase="http://geostreams.ucdavis.edu/~carueda/jnlp"
+  href="vizstreams.jnlp">
+  <information>
+    <title>VizStreams</title>
+    <vendor>Carlos Rueda</vendor>
+    <homepage href="http://geostreams.ucdavis.edu"/>
+    <description>VizStreams - Visualization of Geospatial Image Streams</description>
+    <description kind="short">Demos the functionality of the VizStreams syste</description>
+    <description kind="tooltip">VizStreams visualizer</description>
+    <offline-allowed />
+  </information>
+  <!--security>
+      <all-permissions/>
+  </security-->
+  <resources>
+    <j2se version="1.5+" max-heap-size="512M"/>
+    <jar href="lib/geostreams.jar"/>
+  </resources>
+  <application-desc main-class="geostreams.vizstreams.Main" />
+</jnlp>

@@ -1,0 +1,15 @@
+<svg>
+<rect x="-15" y="-40"  
+ width="30" height="80"
+ style="fill:0xffcccc;stroke:{stroke};stroke-width:3"
+/>
+<text x="-23" y="6"
+ style="font-size:20; fill:black; font-family:SansSerif">
+  NIattr
+</text>
+<text x="-5" y="30"
+ style="font-size:12; fill:gray; font-family:SansSerif">
+  {numClients}
+</text>
+</svg>
+

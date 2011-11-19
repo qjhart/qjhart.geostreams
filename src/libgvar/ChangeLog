@@ -1,0 +1,8 @@
+Sep  6, 2005     The index function is revised so that it looks 
+		 better now. 
+
+Jul 20, 2005     Epoch Date (8 bytes) is in BCD format in its block. 
+                 But in the REC array, REC[11] and REC[12] store only
+                 Epoch Date that are already converted into standard
+                 IEEE format.  
+                  

@@ -1,0 +1,84 @@
+#! /usr/bin/make
+#  $Id: Makefile.old,v 1.1 2004/08/12 17:41:53 singhals Exp $
+
+# Set CONFIG_FILE to use libdotconf for configuration
+USE_CONFIG_FILE:=1
+
+CC:=gcc
+LINKCC:=g++
+daemon:=geostreamd
+daemon_LIBS:=-luri -lpthread
+#daemon_LIBS:=-luri -levent -lpthread
+daemon_OTHER:=AUTHORS README Makefile geostream.h rwlock.h ChangeLog
+daemon_SRC:=$(patsubst %,%.c,$(daemon) server log request client buffer ll rwlock cache)
+daemon_OBJ:=$(patsubst %.c,%.o,$(daemon_SRC))
+
+# For optimizations.  Note That I've inlined some functions, but the
+# compiler would most likely do that anyways with, -finline-functions,
+# part other enabling at O3
+#CFLAGS=-O3 -finline-functions
+
+# If you want to use gprof:
+#CFLAGS=-g -Wall -pg
+LDFLAGS=
+
+# If you want to disable syslog (e.g. you don't have root to modify
+# syslog.conf) and use the built-in logging instead, then add the
+# following to CFLAGS: -DNO_SYSLOG
+#CFLAGS=-g -Wall -DNO_SYSLOG
+CFLAGS:= -g -Wall -static 
+
+ifdef USE_CONFIG_FILE
+$(warn foo)
+daemon_SRC:=$(daemon_SRC) config.c
+daemon_OBJ:=$(daemon_OBJ) config.o
+daemon_LIBS:=$(daemon_LIBS) -ldotconf
+CFLAGS:=$(CFLAGS) -DUSE_CONFIG_FILE
+endif
+
+clean_daemon_OBJ := $(daemon_OBJ)
+
+STATIC_LIBEVENT:=1
+ifdef STATIC_LIBEVENT
+daemon_OBJ:=$(daemon_OBJ) /usr/local/lib/libevent.a
+endif
+
+all: $(daemon)
+
+$(daemon).1: $(daemon).pod
+	pod2man -c 'GeoStreams Server' $< > $@
+
+$(daemon): $(daemon_OBJ) $(daemon).h
+	$(LINKCC) $(LDFLAGS) -o $(daemon) $(daemon_LIBS) $(daemon_OBJ) $(LDFLAGS)
+
+$(deamon_OBJ) $(client_OBJ): %.o: %.c $(daemon).h:
+	$(CC) $(CFLAGS) -c -g $<
+
+.PHONY: dist clean dist-clean indent
+
+indent:
+	indent -nut $(daemon_SRC) $(daemon).h
+
+dist:  indent $(daemon_OTHER) $(daemon_SRC)
+	tar -czf $(daemon).tar.gz $(daemon_SRC) $(daemon_OTHER)
+
+clean:
+	rm -rf $(daemon) $(clean_daemon_OBJ) $(client_OBJ) core *~
+
+dist-clean: clean
+	rm -f $(deamon).1 geostream*.log
+
+port:=6666
+#host:=192.168.1.101
+host:=localhost
+fmt:=tsv
+timeout:=5
+test_time:=20
+num_call:=10
+
+manytest:
+	for i in `cd /var/www/; ls test/*`; do \
+	  echo $$i; \
+	  httperf --server=localhost --port=6666 --uri=/$$i \
+	          --num-conns=1 --num-calls=1 --rate=1000; \
+	done

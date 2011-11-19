@@ -1,0 +1,245 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="S-ndi-tid-ne" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.1.devel">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[235.0, 205.0]">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={97, 6, 601, 516}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[562, 382]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.2514101618042">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{128.5466822763153, 123.6278160668193}">
+    </property>
+    <property name="Annotation2" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="10">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="Normalized&#10;Thermal Index">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[240.0, 75.0]">
+        </property>
+    </property>
+    <entity name="mwi" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="file:/home/carueda/goesdata/local2/local.xml">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="1 delay=21">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-35.0, 20.0]">
+        </property>
+    </entity>
+    <entity name="lwi" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="file:/home/carueda/goesdata/local2/local.xml">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="3 delay=21">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-35.0, 70.0]">
+        </property>
+    </entity>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="400 0 500 300">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="45">
+        </property>
+        <property name="bgSizeParam" class="ptolemy.data.expr.StringParameter" value="1000">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[245.0, 165.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+        <port name="input" class="ptolemy.actor.TypedIOPort">
+            <property name="input"/>
+            <property name="multiport"/>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="WEST">
+            </property>
+        </port>
+        <port name="output" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+        </port>
+    </entity>
+    <entity name="Addition" class="geostreams.ptolemy.actor.StreamAdditionActor">
+        <doc>Addition</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[150.0, 90.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Difference" class="geostreams.ptolemy.actor.StreamDifferenceActor">
+        <doc>Difference</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[150.0, 45.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Division" class="geostreams.ptolemy.actor.StreamDivisionActor">
+        <doc>Division</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[205.0, 70.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="AThreshold" class="geostreams.ptolemy.actor.StreamAThresholdActor">
+        <property name="thresholdParam" class="ptolemy.data.expr.StringParameter" value="5">
+        </property>
+        <property name="outputValueParam" class="ptolemy.data.expr.StringParameter" value="0xffff0000">
+        </property>
+        <doc>AThreshold</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[170.0, 225.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="R" class="geostreams.ptolemy.actor.StreamRegionOfInterestActor">
+        <property name="roiParam" class="ptolemy.data.expr.StringParameter" value="15000 3000 20000 4500">
+        </property>
+        <doc>RegionOfInterest</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[60.0, 20.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="RegionOfInterest2" class="geostreams.ptolemy.actor.StreamRegionOfInterestActor">
+        <property name="roiParam" class="ptolemy.data.expr.StringParameter" value="15000 3000 20000 4500">
+        </property>
+        <doc>RegionOfInterest</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[60.0, 70.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Delay" class="geostreams.ptolemy.actor.StreamDelayActor">
+        <property name="roiParam" class="ptolemy.data.expr.StringParameter" value="15000 3000 20000 4500">
+        </property>
+        <doc>Delay</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[5.0, 235.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+        <port name="bufferOutput" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="SOUTH">
+            </property>
+        </port>
+    </entity>
+    <entity name="NetInterface" class="geostreams.ptolemy.NetInterface">
+        <doc>Net-enables a workflow</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[260.0, 15.0]">
+        </property>
+    </entity>
+    <entity name="AbsoluteValue" class="geostreams.ptolemy.actor.StreamAbsoluteValueActor">
+        <doc>AbsoluteValue</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[110.0, 225.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Difference2" class="geostreams.ptolemy.actor.StreamDifferenceActor">
+        <doc>Difference</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[55.0, 225.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[110.0, 70.0]">
+        </vertex>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[100.0, 20.0]">
+        </vertex>
+    </relation>
+    <relation name="relation3" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation6" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation7" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation4" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation10" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[30.0, 165.0]">
+        </vertex>
+    </relation>
+    <relation name="relation11" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[-30.0, 120.0]">
+        </vertex>
+    </relation>
+    <relation name="relation5" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[90.0, 185.0]">
+        </vertex>
+    </relation>
+    <relation name="relation12" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation8" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation9" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation13" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="mwi.output" relation="relation4"/>
+    <link port="lwi.output" relation="relation3"/>
+    <link port="lwi.output" relation="relation10"/>
+    <link port="StreamViewer.input" relation="relation10"/>
+    <link port="StreamViewer.input" relation="relation5"/>
+    <link port="StreamViewer.input" relation="relation12"/>
+    <link port="Addition.input" relation="relation2"/>
+    <link port="Addition.output" relation="relation7"/>
+    <link port="Addition.input2" relation="relation"/>
+    <link port="Difference.input" relation="relation2"/>
+    <link port="Difference.output" relation="relation6"/>
+    <link port="Difference.input2" relation="relation"/>
+    <link port="Division.input" relation="relation6"/>
+    <link port="Division.output" relation="relation11"/>
+    <link port="Division.input2" relation="relation7"/>
+    <link port="AThreshold.input" relation="relation9"/>
+    <link port="AThreshold.output" relation="relation12"/>
+    <link port="R.input" relation="relation4"/>
+    <link port="R.output" relation="relation2"/>
+    <link port="RegionOfInterest2.input" relation="relation3"/>
+    <link port="RegionOfInterest2.output" relation="relation"/>
+    <link port="RegionOfInterest2.output" relation="relation5"/>
+    <link port="Delay.input" relation="relation11"/>
+    <link port="Delay.output" relation="relation8"/>
+    <link port="AbsoluteValue.input" relation="relation13"/>
+    <link port="AbsoluteValue.output" relation="relation9"/>
+    <link port="Difference2.input" relation="relation11"/>
+    <link port="Difference2.output" relation="relation13"/>
+    <link port="Difference2.input2" relation="relation8"/>
+</entity>

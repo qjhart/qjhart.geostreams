@@ -1,0 +1,43 @@
+<GeoStreams server="http://geostreams.ucdavis.edu:9060">
+
+	<!-- should be given by the server as part of the basic info -->
+	<ReferenceSpace x="0" y="0" width="30676" height="15769"/>
+	
+	<!-- Image used as background.  ``#'' is replaced with the channel ID -->
+	<saved pattern="http://geostreams.ucdavis.edu/~carueda/applet/saved_#.jpg"/>
+	
+	<!-- channel used for overview (nodata) -->
+	<overview channel="2"/>
+	
+	<!-- vector data -->
+	<Vectors>
+		<Vector name="Shorelines (low resolution)" 
+			url="http://geostreams.ucdavis.edu/~carueda/applet/dev/shorelines_l.txt"
+			group="shorelines"
+		/>
+		<Vector name="Shorelines (medium resolution)" 
+			url="http://geostreams.ucdavis.edu/~carueda/applet/geolines.txt"
+			group="shorelines"
+		/>
+
+		<Vector name="Lakes (area > 5000 Km2)" 
+			url="http://geostreams.ucdavis.edu/~carueda/applet/dev/lakes5000.txt"
+			group="lakes"
+		/>
+
+		<Vector name="Lakes (area > 2000 Km2)" 
+			url="http://geostreams.ucdavis.edu/~carueda/applet/dev/lakes2000.txt"
+			group="lakes"
+		/>
+
+		<Vector name="Meridians" 
+			url="http://geostreams.ucdavis.edu/~carueda/applet/dev/meridians.txt"
+		/>
+		<Vector name="Parallels" 
+			url="http://geostreams.ucdavis.edu/~carueda/applet/dev/parallels.txt"
+		/>
+
+	</Vectors>
+	
+</GeoStreams>
+

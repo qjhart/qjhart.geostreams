@@ -1,0 +1,76 @@
+#! /usr/bin/perl
+
+package main;
+
+use strict;
+use lib qw(../lib);
+use GeoStr::Client;
+use GeoStr::Server;
+use GeoStr::Query;
+use Getopt::Long qw(:config posix_default);
+use Pod::Usage;
+#use JSONRPC::Transport::HTTP;
+
+my $uri = 'http://localhost:8080/GeoStr/Server/';
+
+my %opt;
+GetOptions(\%opt,'help|?',"man",'verbose!','daemon!','transport=s') ||
+	pod2usage(2);
+
+pod2usage(2) if $opt{help};
+pod2usage(-verbose=>2) if $opt{man};
+
+if ($opt{daemon}) {
+    my $daemon = JSONRPC::Transport::HTTP::Daemon
+	->new(LocalPort => 8080)
+	->dispatch_to('GeoStr/Server');
+    $SIG{INT} = sub { die "\nOutta here!\n" };
+    $daemon->handle();
+} else {
+    my $client = new GeoStr::Client(proxy=>$uri);
+    my $casil={+proj=>'aea',+lat_1=>34.00,+lat_2=>40.50,+lat_0=>0.00,
+	       +lon_0=>-120.00,'+x_0'=>0.000,'+y_0'=>-4000000.000,
+	       +ellps=>'GRS80',+units=>'m',
+	       +datum=>'NAD83','no_defs'=>undef,'<>'=>undef};
+    my $query = new GeoStr::Query(
+				proj=>$casil,
+				box=>[-400000,-650000,600000,450000]);
+    $query->resolution(100);
+    my $res=$client->register_query($query);
+}
+
+
+__END__
+	
+=head1 NAME
+	
+geostr - GeoStream Client and Server
+
+=head1 SYNOPSIS
+
+geostr [options]
+
+ Options:
+   --help            brief help message
+   --man             full documentation
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-help>
+
+Print a brief help message and exits.
+
+=item B<-man>
+
+Prints the manual page and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B<geostr> will eventually act as a client and server in the accessing
+GOES geostreams.
+
+=cut

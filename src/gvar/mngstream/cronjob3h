@@ -1,0 +1,14 @@
+MYDIR=`dirname $0`
+
+PATH=$MYDIR:/opt/java/jdk1.5.0_01/bin
+
+JAVA_OPTS="-Djava.awt.headless=true -Xincgc"
+
+cd $MYDIR
+
+echo "JAVA_OPTS = $JAVA_OPTS" > i_am_alive
+
+./gvnetapi2 169.237.153.55 - 999999 2> /dev/null | java $JAVA_OPTS -jar DIST/mngstream.jar -url - -delay 60 -alive 35  >> cronjob3h.out 2>> cronjob3h.err &
+
+
+

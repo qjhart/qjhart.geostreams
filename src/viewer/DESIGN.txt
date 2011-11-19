@@ -1,0 +1,69 @@
+Design notes
+Carlos A. Rueda-Velasquez
+$Id: DESIGN.txt,v 1.7 2007/06/04 17:54:44 crueda Exp $
+
+	contents
+		o Net-enabling Geostreams Scientific Workflows
+		o Geostreams Image package
+		
+
+o Net-enabling Geostreams Scientific Workflows
+----------------------------------------------
+
+This module is based on an abstract concept of "workflow," that is, an external
+interface to access the available streams in some concrete scientific workflow. 
+
+Class NetInterface (in geostreams.ptolemy) offers an implementation that 
+accesses the available streams in a Ptolemy model. This NetInterface is a 
+Ptolemy component that can be inserted in a model to net-enable it.
+
+Class SimpleWorkflow in (geostreams.workflow) is an implementation that uses a 
+ServerConnection to export the streams in a geostream spec through the same interface. 
+
+Both IWorkflow implementations make use of the mechanisms in the geostreams.workflow
+package to provide the actual net-enabling capability (via a standard server).
+
+geostreams.Client is a simple client GUI to test a net-enabled workflow. 
+It can be used as a standalone program. 
+
+
+* package geostreams.workflow:
+Provides the "net-enabling" of workflows:
+	interface IWorkflow          Interface for client code to interact with a workflow
+	interface IWorkflowObserver  To notify client code about events in the workflow
+	class WorkflowObserver       The observer of the view
+	class NIManager              Main net-interface manager
+	class NIServer               The server thread
+	class RemoteClient           Server-side representation of a remote client
+	class DispatchRemoteClient   Thread for dispatching a remote client
+
+	class SimpleWorkflow         A command-line, non-interactive implementation 
+	                             of IWorkflow backed on a ServerConnection.
+	
+* package geostreams.ptolemy:
+Offers access to a Ptolemy model through the IWorkflow interface:
+	class NetInterface           The ptolemy component implementing IWorkflow
+	class PtUtils                Various ptolemy-related helper functions
+		
+
+		
+o Geostreams Image package
+--------------------------
+
+TODO: reorganize
+
+note:
+	Even though that C++ based server protocol allows more than one channel to be
+	requested in a single socket connection, this module restricts these
+	requests to only ONE channel. This simplifies the design. Also, the canceling 
+	of data reception can be done in a stream by stream basis.
+
+package geostreams.image:
+	This packages defines and handles images and image streams. The main supporting
+	class here is ServerConnection, which manages a connection to a GeoStreams server
+	via a specification in xml format.
+
+TODO: it seems IServerConnection has some responsabilities that actually
+	  belong to IImageStream...
+	
+[to be continued]

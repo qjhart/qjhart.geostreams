@@ -1,0 +1,75 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="S-NetReader1l" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{330.0, 60.0}">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={215, 131, 651, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[435, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{170.2373737373737, 96.3484848484848}">
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="12">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="A client workflow that reads data from a net-enabled workflow.">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[-30.0, 0.0]">
+        </property>
+    </property>
+    <entity name="StreamReader" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="THR">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{15, 80}">
+        </property>
+    </entity>
+    <entity name="StreamViewer" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="0 0 400 400">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="40">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{190, 80}">
+        </property>
+    </entity>
+    <entity name="StreamReader2" class="geostreams.ptolemy.actor.StreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <property name="channelIdParam" class="ptolemy.data.expr.StringParameter" value="Delay">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{15, 155}">
+        </property>
+    </entity>
+    <entity name="StreamViewer2" class="geostreams.ptolemy.actor.StreamViewerActor">
+        <property name="frameLocationParam" class="ptolemy.data.expr.StringParameter" value="400 0 400 400">
+        </property>
+        <property name="zoomFactorParam" class="ptolemy.data.expr.StringParameter" value="40">
+        </property>
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[205.0, 155.0]">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="StreamReader.output" relation="relation"/>
+    <link port="StreamViewer.input" relation="relation"/>
+    <link port="StreamReader2.output" relation="relation2"/>
+    <link port="StreamViewer2.input" relation="relation2"/>
+</entity>

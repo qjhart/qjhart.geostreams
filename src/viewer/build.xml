@@ -1,0 +1,245 @@
+<!--
+	Build for geostreams image stream and visualization module
+	Carlos A. Rueda-Velasquez
+	$Id: build.xml,v 1.29 2008/01/04 02:44:54 crueda Exp $
+	
+	Some basic properties are defined in build.properties.
+	See that file for more information.
+-->
+<project name="geostreams" default="jar-geostreams" >
+	<!-- Load basic properties -->
+	<property file="build.properties"/>
+
+	<!-- Directory to put compiled classes -->
+	<property name="build" value="${generated}/BUILD"/>
+
+	<!-- Directory to put distribution -->
+	<property name="dist.dir" value="${generated}/DIST"/>
+
+	<property name="src.dir" value="src/geostreams"/>
+	<property name="classes.dir" value="${build}/classes"/>
+	<property name="classes14.dir" value="${build}/classes14"/>
+
+	<!-- note: the location is inexistent, but retrotranslator works fine. -->
+	<property name="jdk14.home" value="/usr/local/j2sdk1.4.2_08" />
+
+	<!-- <win> following stuff to set up windows -->
+	<property environment="env"/>
+	<property name="ptii" value="${env.PTII}" />
+	<property name="workflow" value="workflows/Reader1.xml" />
+	<target name="init-vergil">
+		<!-- vergil classpath -->
+		<path id="vergil.classpath">
+			<fileset dir="${ptii}">
+				<include name="lib/*.jar"/>
+			</fileset>
+			<fileset dir="${ptii}/ptolemy">
+				<include name="*.jar"/>
+			</fileset>
+			<pathelement location="${ptii}"/>
+			<!--pathelement location="${classes.dir}"/>
+			<fileset dir="${dist.dir}">
+				<include name="*.jar"/>
+			</fileset-->
+		</path>
+		<echo message="ptii = ${ptii}"/>
+		<echo message="vergil.classpath = ${vergil.classpath}"/>
+	</target>
+	<!--target name="vergil" depends="compile-actors, init-vergil"-->
+	<target name="vergil" depends="init-vergil">
+		<java classname="ptolemy.vergil.VergilApplication" fork="true" dir=".">
+			<jvmarg value="-Xms60M"/>
+			<jvmarg value="-Xmx250M"/>
+			<arg value="${workflow}"/>
+			<classpath>
+				<path location="${classes.dir}"/>
+				<path refid="vergil.classpath"/>
+			</classpath>
+		</java>
+	</target>
+	<!-- </win> -->
+
+	<target name="client">
+		<java classname="geostreams.Client">
+			<classpath>
+				<path location="${classes.dir}"/>
+			</classpath>
+		</java>
+	</target>
+	
+	
+	
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${classes.dir}"/>
+		<mkdir dir="${classes14.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+	</target>
+
+	<!-- compilation for 1.5 -->
+	<target name="compile-geostreams" depends="init">
+		<javac srcdir="${src.dir}" 
+			   destdir="${classes.dir}"
+		       excludes="**/ptolemy/**, **/org/kepler/**" 
+		       debug="on" deprecation="on" source="1.5"
+		>
+			<compilerarg value="-Xlint:unchecked"/>
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="src/"
+				includes="geostreams/icons/**/*.gif"
+			/>
+		</copy>
+	</target>
+
+	<target name="jar-geostreams" depends="compile-geostreams"
+	 description="Builds core library geostreams.jar for java 1.5">
+		<jar jarfile="${dist.dir}/geostreams.jar"
+			basedir="${classes.dir}"     
+			excludes="**/ptolemy/**"
+		>
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Main-class" 
+				 value="geostreams.vizstreams.Main"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="pggoespoints" 
+	 description="Builds utility pggoespoints.jar">
+		<jar jarfile="${dist.dir}/pggoespoints.jar"
+			basedir="${classes.dir}"     
+			includes="geostreams/goes/TemperatureConversion*.class, geostreams/util/PgUpdateGoesPoints.class"
+		>
+			<manifest>
+				<attribute name="Built-By"   value="${user.name}"/>
+				<attribute name="Main-class" value="geostreams.util.PgUpdateGoesPoints"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="run" depends="compile-geostreams"
+	 description="Runs geostreams.jar">
+	 	<java fork="true" jar="${dist.dir}/geostreams.jar">
+			<classpath>
+				<path location="${classes.dir}"/>
+			</classpath>
+	 	</java>
+	</target>
+	
+	<target name="dist" depends="jar-geostreams"
+	 description="Makes distribution including jars and scripts">
+		<copy todir="${dist.dir}">
+			<fileset dir="page"/>
+		</copy>
+	</target>
+	
+	<target name="compile-actors" depends="compile-geostreams" if="ptolemy.classpath"
+	 description="builds geostreams-actors.jar">
+		<javac srcdir="${src.dir}" 
+			   destdir="${classes.dir}"
+		       includes="**/ptolemy/**/*.java"
+		       excludes="**/ptolemy/actor/DelayActor.java"
+			   classpath="${ptolemy.classpath}:${cimis.classpath}:${ggis.classpath}:${dist.dir}/geostreams.jar"
+		       debug="on" deprecation="on" source="1.5"
+		>
+			<compilerarg value="-Xlint:unchecked"/>
+		</javac>
+		<copy
+			file="${src.dir}/ptolemy/geostreamsactors.xml"
+			todir="${classes.dir}/geostreams/ptolemy"
+		/>
+		<copy
+			file="src/ptolemy/configs/basicActorLibrary.xml"
+			todir="${classes.dir}/ptolemy/configs"
+		/>
+	</target>
+	
+	<target name="jar-actors" depends="compile-actors" if="ptolemy.classpath"
+	 description="builds geostreams-actors.jar">
+		<jar jarfile="${dist.dir}/geostreams-actors.jar"
+			basedir="${classes.dir}"     
+			includes="**/ptolemy/**">
+		</jar>
+	</target>
+
+	<target name="monitoricons" if="ptolemy.classpath"
+	 description="builds monitoricons.jar">
+		<javac srcdir="${src.dir}" 
+			   destdir="${classes.dir}"
+		       includes="**/kepler/monitor/**/*.java"
+			   classpath="${ptolemy.classpath}"
+		       debug="on" deprecation="on" source="1.5"
+		>
+			<compilerarg value="-Xlint:unchecked"/>
+		</javac>
+		<jar jarfile="${dist.dir}/kepler-monitor.jar"
+			basedir="${classes.dir}"     
+			includes="**/kepler/monitor/**">
+		</jar>
+	</target>
+
+	<target name="update-kepler" if="kepler.lib.jar" depends="jar-geostreams, jar-actors, monitoricons">
+		<copy todir="${kepler.lib.jar}">
+			<fileset dir="${dist.dir}">
+				<include name="geostreams-actors.jar" />
+				<include name="geostreams.jar" />
+				<include name="kepler-monitor.jar" />
+			</fileset>
+		</copy>
+	</target>
+		
+	<target name="retro" depends="compile-geostreams" description="generates 1.4 classes">
+		<path id="tests.classpath">
+			<fileset dir="${retrotranslator.dist}">
+				<include name="${retroruntime}" />
+				<include name="${retrotransformer}" />
+			</fileset>
+		</path>
+		<taskdef name="retro"
+			classname="net.sf.retrotranslator.transformer.RetrotranslatorTask"
+			classpathref="tests.classpath" 
+		/>
+
+		<retro destdir="${classes14.dir}"
+			verify="false"
+			failonwarning="true">
+			<classpath location="${jdk14.home}/jre/lib/rt.jar" />
+			<classpath refid="tests.classpath" />
+			<src path="${classes.dir}" />
+		</retro>		
+	</target>
+
+	<target name="geostreams4j14" depends="retro"
+	 description="Builds core library geostreams4j14.jar for java 1.4">
+		<copy todir="${classes14.dir}">
+			<fileset dir="src/"
+				includes="geostreams/icons/**/*.gif"
+			/>
+		</copy>
+		<jar jarfile="${dist.dir}/geostreams4j14.jar"
+			basedir="${classes14.dir}"     
+			excludes="**/ptolemy/**"
+		>
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Main-class" 
+				 value="geostreams.vizstreams.Main"/>
+				<attribute name="Class-path" value="retrotranslator-runtime-0.9.7.jar"/>
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${build}"/>
+	</target>
+
+	<target name="clean-dist" depends="clean">
+		<delete dir="${dist.dir}"/>
+	</target>
+
+	<target name="clean-all">
+		<delete dir="${generated}"/>
+	</target>
+</project>

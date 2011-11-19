@@ -1,0 +1,10 @@
+
+This distribution creates a library for parsing the gvar stream.
+
+To compile this package, type the following commands:
+
+./bootstrap
+./bootstrap (Yes, you need to run it twice)
+./configure --prefix=<the directory you want the library to be generated>
+make
+make install

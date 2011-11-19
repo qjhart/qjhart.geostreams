@@ -1,0 +1,52 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="NetReaderAndServer1" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.beta">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[275.0, 105.0]">
+        </property>
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={351, 6, 673, 462}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[457, 350]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.0717871669904">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{204.1953125, 154.2786857221006}">
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="A net-enabled workfow receiving data from a net-enabled &#10;workflow running on localhost:35813 and serving itself &#10;data on localhost port 35814.">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{15.0, 155.0}">
+        </property>
+    </property>
+    <entity name="ImageStreamViewer" class="geostreams.ptolemy.actor.ImageStreamViewerActor">
+        <doc>Visualizes an image stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[230.0, 40.0]">
+        </property>
+    </entity>
+    <entity name="ImageStreamReader" class="geostreams.ptolemy.actor.ImageStreamReaderActor">
+        <property name="serverParam" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <property name="GeoStreams server" class="ptolemy.data.expr.StringParameter" value="localhost:35813">
+        </property>
+        <doc>Imports a GeoStreams stream</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[65.0, 40.0]">
+        </property>
+    </entity>
+    <entity name="oldNetInterface" class="geostreams.ptolemy.Workflow">
+        <property name="portParam" class="ptolemy.data.expr.StringParameter" value="35814">
+        </property>
+        <doc>Net-enables a workflow</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[80.0, 115.0]">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="ImageStreamViewer.input" relation="relation"/>
+    <link port="ImageStreamReader.output" relation="relation"/>
+</entity>

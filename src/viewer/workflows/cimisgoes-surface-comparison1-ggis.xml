@@ -1,0 +1,388 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="cimisgoes-surface-comparison1-ggis" class="ptolemy.actor.TypedCompositeActor">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.1.devel">
+    </property>
+    <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={0, 6, 1024, 756}, maximized=false}">
+    </property>
+    <property name="_vergilSize" class="ptolemy.actor.gui.SizeAttribute" value="[748, 622]">
+    </property>
+    <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="1.4574233407876">
+    </property>
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{219.0879738473702, 54.3691666319906}">
+    </property>
+    <property name="PN Director" class="ptolemy.domains.pn.kernel.PNDirector">
+        <property name="timeResolution" class="ptolemy.moml.SharedParameter" value="1E-10">
+        </property>
+        <property name="initialQueueCapacity" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <property name="maximumQueueCapacity" class="ptolemy.data.expr.Parameter" value="65536">
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Mudit Goel, Edward A. Lee, Xiaowen Xin</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>
+<p>PN Directors are natural candidates for managing workflows that require parallel processing on distributed computing systems. PN workflows are powerful because they have few restrictions. On the other hand, they can be very inefficient.</p>
+
+<p>The Process Network (PN) Director is similar to the SDF Director in that it does not have a notion of time. However, unlike the SDF Director, the PN Director does not statically calculate firing schedules. Instead, a PN workflow is driven by data availability: tokens are created on output ports whenever input tokens are available and the outputs can be calculated. Output tokens are passed to connected actors, where they are held in a buffer until that next actor collects all required inputs and can fire. The PN Director finishes executing a workflow only when there are no new data token sources anywhere in the workflow. </p>
+
+<p>The same execution process that gives the PN Director its flexibility can also lead to some unexpected results: workflows may refuse to automatically terminate because tokens are always generated and available to downstream actors, for example. If one actor fires at a much higher rate than another, a downstream actor's memory buffer may overflow, causing workflow execution to fail.</p>
+
+</configure></property>
+<property name="prop:initialQueueCapacity" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The initial size of the queues for each communication channel. The value is an integer that defaults to 1. This is an advanced parameter that can usually be left at its  default value.</configure></property>
+<property name="prop:maximumQueueCapacity" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The maximum size of the queues for each communication channel. The value is an integer that defaults to 65536. To specify unbounded queues, set the value to 0. This is an advanced parameter that can usually be left at its  default value.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:director:2:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.domains.pn.kernel.PNDirector">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:directorclass:2:1">
+            </property>
+        </property>
+        <property name="semanticType00" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Director">
+        </property>
+        <property name="semanticType11" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#Director">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[350.0, -80.0]">
+        </property>
+    </property>
+    <property name="raster1" class="ptolemy.data.expr.Parameter" value="&quot;realtime_raster_2007-09-13_0913_temp_s_1&quot;">
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:420:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.data.expr.Parameter">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1184:1">
+            </property>
+        </property>
+        <property name="semanticType00" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Parameter">
+        </property>
+        <property name="semanticType11" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#Parameter">
+        </property>
+        <property name="_hideName" class="ptolemy.kernel.util.SingletonAttribute">
+        </property>
+        <property name="_icon" class="ptolemy.vergil.icon.ValueIcon">
+            <property name="_color" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+            </property>
+        </property>
+        <property name="_smallIconDescription" class="ptolemy.kernel.util.SingletonConfigurableAttribute">
+            <configure>
+      <svg>
+        <text x="20" style="font-size:14; font-family:SansSerif; fill:blue" y="20">-P-</text>
+      </svg>
+    </configure>
+        </property>
+        <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{35, -120}">
+        </property>
+    </property>
+    <property name="rasterrst" class="ptolemy.data.expr.Parameter" value="&quot;hly_air_tmp_2007-09-12_0900_rst&quot;">
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:420:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.data.expr.Parameter">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1184:1">
+            </property>
+        </property>
+        <property name="semanticType00" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Parameter">
+        </property>
+        <property name="semanticType11" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#Parameter">
+        </property>
+        <property name="_hideName" class="ptolemy.kernel.util.SingletonAttribute">
+        </property>
+        <property name="_icon" class="ptolemy.vergil.icon.ValueIcon">
+            <property name="_color" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+            </property>
+        </property>
+        <property name="_smallIconDescription" class="ptolemy.kernel.util.SingletonConfigurableAttribute">
+            <configure>
+      <svg>
+        <text x="20" style="font-size:14; font-family:SansSerif; fill:blue" y="20">-P-</text>
+      </svg>
+    </configure>
+        </property>
+        <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[35.0, -65.0]">
+        </property>
+    </property>
+    <property name="raster2" class="ptolemy.data.expr.Parameter" value="&quot;hly_air_tmp_2007-09-12_0900_elev&quot;">
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:420:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.data.expr.Parameter">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1184:1">
+            </property>
+        </property>
+        <property name="semanticType00" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#Parameter">
+        </property>
+        <property name="semanticType11" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#Parameter">
+        </property>
+        <property name="_hideName" class="ptolemy.kernel.util.SingletonAttribute">
+        </property>
+        <property name="_icon" class="ptolemy.vergil.icon.ValueIcon">
+            <property name="_color" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+            </property>
+        </property>
+        <property name="_smallIconDescription" class="ptolemy.kernel.util.SingletonConfigurableAttribute">
+            <configure>
+      <svg>
+        <text x="20" style="font-size:14; font-family:SansSerif; fill:blue" y="20">-P-</text>
+      </svg>
+    </configure>
+        </property>
+        <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[35.0, -95.0]">
+        </property>
+    </property>
+    <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+        <property name="_hideAllParameters" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="textSize" class="ptolemy.data.expr.Parameter" value="10">
+        </property>
+        <property name="textColor" class="ptolemy.actor.gui.ColorAttribute" value="{0.0, 0.0, 1.0, 1.0}">
+        </property>
+        <property name="fontFamily" class="ptolemy.data.expr.StringParameter" value="SansSerif">
+        </property>
+        <property name="bold" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="italic" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="This workflow uses instances of the GGis actor to read&#10;raster from a GGis database. This actor already samples the&#10;raster to easily use the regression actor.">
+            <property name="_style" class="ptolemy.actor.gui.style.TextStyle">
+                <property name="height" class="ptolemy.data.expr.Parameter" value="20">
+                </property>
+                <property name="width" class="ptolemy.data.expr.Parameter" value="80">
+                </property>
+            </property>
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Edward A. Lee</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Use the Annotation attribute to annotate a workflow. Double-click the attribute to customize the content, font size, color, and basic formatting (bold and italics).</configure></property>
+<property name="prop:fontFamily" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The font face. Select a font from the drop-down menu. The default is "SansSerif".</configure></property>
+<property name="prop:italic" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Select to indicate that the type should be italics. By default, type will not be italicized.</configure></property>
+<property name="prop:bold" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Select to indicate that the type should be bold. By default, type will not be bold.</configure></property>
+<property name="prop:textColor" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The font color. Specify a string representing an array of four elements: red, green, blue, and alpha, where alpha is transparency. The default is an opaque black, {0.0, 0.0, 0.0, 1.0}</configure></property>
+<property name="prop:textSize" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The font size. Select an integer from the drop-down menu or specify a new size by typing it directly into the value field.  The default is 14.</configure></property>
+<property name="prop:text" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The text of the annotation.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:436:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="ptolemy.vergil.kernel.attributes.TextAttribute">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1199:1">
+            </property>
+        </property>
+        <property name="semanticType00" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#DocumentationActor">
+        </property>
+        <property name="semanticType11" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#WorkflowDocumentation">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[0.0, 125.0]">
+        </property>
+    </property>
+    <entity name="GGisActor" class="geostreams.ptolemy.actor.GGisActor">
+        <property name="baseParam" class="ptolemy.data.expr.StringParameter" value="/home/carueda/data/gdb/California/BIN_GRASS">
+        </property>
+        <property name="raster1Param" class="ptolemy.data.expr.StringParameter" value="$raster1">
+        </property>
+        <doc>GGisActor</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[60.0, -20.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <entity name="Regression" class="org.ecoinformatics.seek.R.RExpression">
+        <property name="expression" class="ptolemy.kernel.util.StringAttribute" value="sgnf &lt;- function(v, ...)&#10;    signif(v, 3, ...)&#10;&#10;if (is.character(Dependent)) {&#10;	Dependent &lt;- factor(Dependent)&#10;}&#10;&#10;model &lt;- lm(Dependent ~ Independent)&#10;&#10;R2 &lt;- summary(model)$r.squared&#10;&#10;plot(Independent, Dependent, xlab=&quot;GOES&quot;, ylab=&quot;CIMIS&quot;, asp=1)&#10;&#10;if (is.numeric(Dependent)) {&#10;	abline(model)&#10;	intercept &lt;- as.numeric(model$coefficient[1])&#10;	slope &lt;- as.numeric(model$coefficient[2])&#10;	title(main=paste(&quot;R^2 =&quot;, sgnf(R2)), sub=paste(&quot;b =&quot;, sgnf(intercept), &quot;  m =&quot;, sgnf(slope)))&#10;	intercept&#10;	slope&#10;&#10;# Save the data for external usage:&#10;csvname &lt;- &quot;goescimisdata.csv&quot;&#10;csv &lt;- file(csvname, &quot;w&quot;)&#10;cat(paste(&quot;# R2=&quot;, sgnf(R2), sep=&quot;&quot;), paste(&quot;# m=&quot;, sgnf(slope), sep=&quot;&quot;), paste(&quot;# b=&quot;, sgnf(intercept), sep=&quot;&quot;), file=csv, sep=&quot;\n&quot;)&#10;close(csv)&#10;write(paste(Independent, Dependent), csvname, append=TRUE)&#10;} &#10;if (is.character(Dependent)) {&#10;	ano &lt;- anova(model)&#10;	ano&#10;} &#10;&#10;#eps &lt;- function(file, onefile=FALSE, horizontal=FALSE, paper=&quot;special&quot;, ...)&#10;#  postscript(file=file, onefile=onefile, horizontal=horizontal, paper=paper, ...)&#10;#&#10;#eps(file=&quot;plot.eps&quot;, width=5, height=5)&#10;#dev.off()&#10;&#10;">
+            <property name="R Expression" class="ptolemy.actor.gui.style.TextStyle">
+                <property name="height" class="ptolemy.data.expr.Parameter" value="10">
+                </property>
+                <property name="width" class="ptolemy.data.expr.Parameter" value="30">
+                </property>
+            </property>
+        </property>
+        <property name="Rcwd" class="ptolemy.data.expr.StringParameter" value="/home/carueda/workspace/viewer/kepler-output/">
+        </property>
+        <property name="save_nosave" class="ptolemy.data.expr.StringParameter" value="--no-save">
+        </property>
+        <property name="graphicsFormat" class="ptolemy.data.expr.StringParameter" value="png">
+        </property>
+        <property name="graphicsOutput" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="displayGraphicsOutput" class="ptolemy.data.expr.Parameter" value="false">
+        </property>
+        <property name="numXPixels" class="ptolemy.data.expr.StringParameter" value="400">
+        </property>
+        <property name="numYPixels" class="ptolemy.data.expr.StringParameter" value="400">
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Josh Madin</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure><p>The Regression actor uses R to run a variance or linear regression analysis. The actor accepts an independent and a dependent variable. If the independent variable is categorical, the actor uses R to run a variance analysis (or a t-test if the variable has only 2 categories). If the independent variable is continuous, a linear regression is run. The actor outputs both a graphical and textual representation of the analysis.</p>
+
+<p>The R application must be installed on the local system to use this actor. R is a language and environment for statistical computing and graphics. For more information about R, see http://www.r-project.org/.</p>
+
+<p>The actor performs the analysis and saves the results to the Kepler working directory. To view the results, connect an ImageJ actor to the graphicsFileName output port and/or a Display actor to the intercept and slope ports. </p>
+</configure></property>
+<property name="port:slope" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts the slope of the generated result.</configure></property>
+<property name="port:output" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts a copy of the text output that R generates.  As the actor communicates with R to run the R function or script, the output port sends back the response (i.e., the values and statistical outputs).</configure></property>
+<property name="port:graphicsFileName" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts the file name of the generated graph of the results.</configure></property>
+<property name="port:Dependent" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The dependent variable (continuous).</configure></property>
+<property name="port:Independent" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The independent variable (continuous or categorical).</configure></property>
+<property name="port:intercept" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>An output port that broadcasts the y-intercept of the generated result.</configure></property>
+<property name="prop:Rcwd" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The 'R' working directory (the home directory by default). </configure></property>
+<property name="prop:displayGraphicsOutput" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Select to display the plot once the actor has generated it.</configure></property>
+<property name="prop:graphicsFormat" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The graphics output format. Currently the actor supports either  *.pdf or  *.png.</configure></property>
+<property name="prop:numXPixels" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The width of the output graphic in pixels.</configure></property>
+<property name="prop:numYPixels" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The height of the output graphic in pixels.</configure></property>
+<property name="prop:expression" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The expression that is evaluated to produce the output.</configure></property>
+<property name="prop:save_nosave" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Specify whether or not to save the R workspace when R is closed; set to '--save' to retrieve the workspace later in a workflow in another R-actor.</configure></property>
+<property name="prop:graphicsOutput" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Specify whether or not to create a graphics output port. By default, the actor will create a graphics output port.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:488:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="org.ecoinformatics.seek.R.RExpression">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="null">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#MathOperationActor">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#StatisticalOperation">
+        </property>
+        <property name="semanticType222" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:5:1#RegressionAnalysis">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[215.0, 0.0]">
+        </property>
+        <property name="keplerFormattedPTIIDocumentation" class="ptolemy.vergil.basic.DocAttribute">
+            <property name="description" class="ptolemy.data.expr.StringParameter" value="&lt;p&gt;The Regression actor uses R to run a variance or linear regression analysis. The actor accepts an independent and a dependent variable. If the independent variable is categorical, the actor uses R to run a variance analysis (or a t-test if the variable has only 2 categories). If the independent variable is continuous, a linear regression is run. The actor outputs both a graphical and textual representation of the analysis.&lt;/p&gt;&#10;&#10;&lt;p&gt;The R application must be installed on the local system to use this actor. R is a language and environment for statistical computing and graphics. For more information about R, see http://www.r-project.org/.&lt;/p&gt;&#10;&#10;&lt;p&gt;The actor performs the analysis and saves the results to the Kepler working directory. To view the results, connect an ImageJ actor to the graphicsFileName output port and/or a Display actor to the intercept and slope ports. &lt;/p&gt;&#10;">
+            </property>
+            <property name="author" class="ptolemy.kernel.util.StringAttribute" value="Josh Madin">
+            </property>
+            <property name="version" class="ptolemy.kernel.util.StringAttribute" value="null">
+            </property>
+            <property name="expression (parameter)" class="ptolemy.data.expr.StringParameter" value="The expression that is evaluated to produce the output.">
+            </property>
+            <property name="Rcwd (parameter)" class="ptolemy.data.expr.StringParameter" value="The 'R' working directory (the home directory by default). ">
+            </property>
+            <property name="save_nosave (parameter)" class="ptolemy.data.expr.StringParameter" value="Specify whether or not to save the R workspace when R is closed; set to '--save' to retrieve the workspace later in a workflow in another R-actor.">
+            </property>
+            <property name="graphicsFormat (parameter)" class="ptolemy.data.expr.StringParameter" value="The graphics output format. Currently the actor supports either  *.pdf or  *.png.">
+            </property>
+            <property name="graphicsOutput (parameter)" class="ptolemy.data.expr.StringParameter" value="Specify whether or not to create a graphics output port. By default, the actor will create a graphics output port.">
+            </property>
+            <property name="displayGraphicsOutput (parameter)" class="ptolemy.data.expr.StringParameter" value="Select to display the plot once the actor has generated it.">
+            </property>
+            <property name="numXPixels (parameter)" class="ptolemy.data.expr.StringParameter" value="The width of the output graphic in pixels.">
+            </property>
+            <property name="numYPixels (parameter)" class="ptolemy.data.expr.StringParameter" value="The height of the output graphic in pixels.">
+            </property>
+            <property name="graphicsFileName (port)" class="ptolemy.kernel.util.StringAttribute" value="An output port that broadcasts the file name of the generated graph of the results.">
+            </property>
+            <property name="output (port)" class="ptolemy.kernel.util.StringAttribute" value="An output port that broadcasts a copy of the text output that R generates.  As the actor communicates with R to run the R function or script, the output port sends back the response (i.e., the values and statistical outputs).">
+            </property>
+            <property name="slope (port)" class="ptolemy.kernel.util.StringAttribute" value="An output port that broadcasts the slope of the generated result.">
+            </property>
+            <property name="Dependent (port)" class="ptolemy.kernel.util.StringAttribute" value="The dependent variable (continuous).">
+            </property>
+            <property name="intercept (port)" class="ptolemy.kernel.util.StringAttribute" value="An output port that broadcasts the y-intercept of the generated result.">
+            </property>
+            <property name="Independent (port)" class="ptolemy.kernel.util.StringAttribute" value="The independent variable (continuous or categorical).">
+            </property>
+        </property>
+        <port name="output" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="SOUTH">
+            </property>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+        </port>
+        <port name="Independent" class="ptolemy.actor.TypedIOPort">
+            <property name="input"/>
+        </port>
+        <port name="Dependent" class="ptolemy.actor.TypedIOPort">
+            <property name="input"/>
+        </port>
+        <port name="intercept" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="SOUTH">
+            </property>
+        </port>
+        <port name="slope" class="ptolemy.actor.TypedIOPort">
+            <property name="output"/>
+            <property name="_hide" class="ptolemy.data.expr.SingletonParameter" value="true">
+            </property>
+            <property name="_cardinal" class="ptolemy.kernel.util.StringAttribute" value="SOUTH">
+            </property>
+        </port>
+    </entity>
+    <entity name="Plot" class="util.ImageJActor">
+        <property name="fileOrURL" class="ptolemy.data.expr.FileParameter" value="/home/carueda/workspace/viewer/kepler-output/carueda40.png">
+        </property>
+<property name="KeplerDocumentation" class="ptolemy.vergil.basic.KeplerDocumentationAttribute">
+<property name="description" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="author" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>Dan higgins</configure></property>
+<property name="version" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>null</configure></property>
+<property name="userLevelDocumentation" class="ptolemy.kernel.util.ConfigurableAttribute"><configure><p>The ImageJ actor reads an image file name and opens and displays the image along with a toolbar of image-processing options, which can be used to process the image.</p>
+
+<p>The actor uses the ImageJ application to open and work with images. ImageJ can be used to display and process a wide variety of images (tiffs, gifs, jpegs, etc.) For more information about ImageJ, see http://rsb.info.nih.gov/ij/.</p></configure></property>
+<property name="port:input" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>A multiport that accepts the path of an image file (a tiff, gif, jpeg, or any other format supported by ImageJ). The file name can also be input through the fileOrURL parameter.</configure></property>
+<property name="prop:fileOrURL" class="ptolemy.kernel.util.ConfigurableAttribute"><configure>The file name or URL of an image to process (a tiff, gif, jpeg, or any other format supported by ImageJ). The file name may also be input through the input port.</configure></property>
+</property>        <property name="entityId" class="org.kepler.moml.NamedObjId" value="urn:lsid:kepler-project.org:actor:251:1">
+        </property>
+        <property name="class" class="ptolemy.kernel.util.StringAttribute" value="util.ImageJActor">
+            <property name="id" class="ptolemy.kernel.util.StringAttribute" value="urn:lsid:kepler-project.org:class:1077:1">
+            </property>
+        </property>
+        <property name="semanticType000" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:1:1#ImageManipulationActor">
+        </property>
+        <property name="semanticType111" class="org.kepler.sms.SemanticType" value="urn:lsid:localhost:onto:2:1#GraphicalOutput">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[300.0, -5.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="false">
+        </property>
+    </entity>
+    <entity name="GGisActor2" class="geostreams.ptolemy.actor.GGisActor">
+        <property name="raster1Param" class="ptolemy.data.expr.StringParameter" value="$raster2">
+        </property>
+        <doc>GGisActor</doc>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[65.0, 65.0]">
+        </property>
+        <property name="_hideName" class="ptolemy.data.expr.SingletonParameter" value="true">
+        </property>
+    </entity>
+    <relation name="relation10" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="GGisActor.output" relation="relation"/>
+    <link port="Regression.graphicsFileName" relation="relation10"/>
+    <link port="Regression.Independent" relation="relation"/>
+    <link port="Regression.Dependent" relation="relation2"/>
+    <link port="Plot.input" relation="relation10"/>
+    <link port="GGisActor2.output" relation="relation2"/>
+</entity>
