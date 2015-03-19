@@ -14,8 +14,7 @@ Excellence, and Quinn Hart (Co-PI, Calspace and Dept. of Computer
 Science).
 
 The project was funded through an NSF ITR award
-[http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=0326517
-#0326517].
+[http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=0326517].
 
 The GeoStream query model and query processing framework extended
 current models and technique for processing continuous, multi-user
